@@ -1,8 +1,8 @@
 import axios from "axios";
 
 const api = axios.create({
-  //baseURL: "https://api.betterzojewels.com/api/v1",
-  baseURL: "http://127.0.0.1:9000/api/v1",
+  baseURL: "https://api.betterzojewels.com/api/v1",
+  // baseURL: "http://127.0.0.1:9000/api/v1",
   // baseURL: "http://192.168.1.5:8000/api/v1",
 });
 
