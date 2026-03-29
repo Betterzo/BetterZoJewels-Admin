@@ -130,7 +130,7 @@ const ForgetPass = () => {
                   placeholder="Enter OTP"
                   value={otp}
                   onChange={e => setOtp(e.target.value)}
-                  reqired
+                  required
                 />
                 {errors.otp && (
                   <p className="text-xs text-red-500 mt-1">{errors.otp}</p>

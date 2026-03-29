@@ -54,11 +54,12 @@ const [viewOpen, setViewOpen] = useState(false);
     try {
       // console.log("Loading inquiries for page:", page, "with search query:", searchQuery);
       const res = await fetchInquiries({ page, search: searchQuery });
-      console.log("Fetched inquiries:", res.data);
-      setInquiries(res.data.data || []);
-      setTotalPages(res.last_page || 1);
+      console.log("Fetched inquiries:", res);
+      setInquiries(res.data || []);
+      setTotalPages(res.meta.last_page || 1);
     } catch (e) {
       toast.error("Failed to load inquiries");
+      console.error("Error fetching inquiries:", e);
     } finally {
       setLoading(false);
     }

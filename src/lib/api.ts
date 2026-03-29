@@ -258,11 +258,12 @@ export const deleteBlog = async (slug: string) => {
 
 export const fetchInquiries = async ({ page = 1, search = "" } = {}) => {
   const token = JSON.parse(localStorage.getItem("duser") || "{}")?.access_token || "";
+  console.log("token", token);
   const params = new URLSearchParams();
   params.append("page", String(page));
   if (search) params.append("search", search);
   // console.log("Fetching inquiries with params:", params.toString());
-  const response = await api.get(`/k/enquiries?${params.toString()}`, {
+  const response = await api.get(`/enquiries?${params.toString()}`, {
     headers: {
       Authorization: `Bearer ${token}`
     }
