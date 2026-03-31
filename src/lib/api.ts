@@ -424,7 +424,7 @@ export const updateOrderTracking = async (id: string, payload: {
 // download order invoice
 export const downloadOrderInvoice = async (id: string) => {
   const token = JSON.parse(localStorage.getItem("duser") || "{}")?.access_token || "";
-  const response = await api.get(`/k/orders/${id}/invoice`, {
+  const response = await api.get(`/orders/${id}/invoice`, {
     headers: { 
       Authorization: `Bearer ${token}`,
       Accept: 'application/pdf, application/json'
