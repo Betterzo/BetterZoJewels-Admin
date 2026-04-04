@@ -16,6 +16,7 @@ import {
   ShoppingCart,
   Percent,
   MessageCircle,
+  CreditCard,
 } from "lucide-react";
 
 type SidebarItemProps = {
@@ -53,6 +54,7 @@ const AdminSidebar = () => {
     { icon: Grid2x2Plus, label: "Categories", to: "/categories" },
     { icon: Boxes, label: "Products", to: "/products" },
     { icon: ShoppingCart, label: "Orders", to: "/orders" },
+    { icon: CreditCard, label: "Payments history", to: "/payments-history" },
     { icon: Percent, label: "Coupons", to: "/coupons" },
     { icon: FileText, label: "Blogs", to: "/blogs" },
     { icon: MessageCircle, label: "Inquiries", to: "/inquiries" },
@@ -72,7 +74,7 @@ const AdminSidebar = () => {
         className="fixed top-4 left-4 z-50 lg:hidden text-sidebar-foreground bg-sidebar-background border border-sidebar-border shadow-md rounded-full"
         onClick={toggleSidebar}
       >
-        {isOpen ? <X size={24} /> : <Menu size={24} />} test
+        {isOpen ? <X size={24} /> : <Menu size={24} />}
       </Button>
 
       {/* Sidebar */}
@@ -103,7 +105,11 @@ const AdminSidebar = () => {
                   icon={item.icon}
                   label={item.label}
                   to={item.to}
-                  isActive={location.pathname === item.to}
+                  isActive={
+                    item.to === "/payments-history"
+                      ? location.pathname.startsWith("/payments-history")
+                      : location.pathname === item.to
+                  }
                 />
               ))}
             </div>

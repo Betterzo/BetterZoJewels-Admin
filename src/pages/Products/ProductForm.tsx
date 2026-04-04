@@ -50,6 +50,12 @@ const ProductForm = () => {
   const [catError, setCatError] = useState("");
   const [dirty, setDirty] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [imageUploadsInFlight, setImageUploadsInFlight] = useState(0);
+  const imageUploadBusy = imageUploadsInFlight > 0;
+
+  const handleImageUploadingChange = (uploading: boolean) => {
+    setImageUploadsInFlight((n) => Math.max(0, n + (uploading ? 1 : -1)));
+  };
 
   // Fetch categories
   useEffect(() => {
@@ -76,6 +82,7 @@ const ProductForm = () => {
       fetchProduct(id)
         .then((data) => {
           const prod = data.data || data;
+          console.log("Fetched product for editing:", prod);
           // Map attributes to {name, value}
           const attributes = Array.isArray(prod.attributes)
             ? prod.attributes.map((attr: any) => ({
@@ -135,6 +142,9 @@ const ProductForm = () => {
     // }
     if (step === 2) {
       if (!product.price) newErrors.price = "Price is required";
+      if(!isNaN(Number(product.price)) && Number(product.price) < 0) newErrors.price = "Price cannot be negative";
+      if(!product.stock) newErrors.stock = "Stock is required";
+      if(!isNaN(Number(product.stock)) && Number(product.stock) < 0) newErrors.stock = "Stock cannot be negative";
     }
     setErrors(newErrors);
     // if (Object.keys(newErrors).length > 0) {
@@ -329,6 +339,8 @@ const ProductForm = () => {
                         label="Featured Image *"
                         value={product.featured_image}
                         onChange={handleFeaturedImageChange}
+                        disabled={isLoading}
+                        onUploadingChange={handleImageUploadingChange}
                       />
                       {errors.featured_image && <p className="text-xs text-red-500">{errors.featured_image}</p>}
                     </div>
@@ -338,6 +350,8 @@ const ProductForm = () => {
                         value={product.gallery_images}
                         onChange={handleGalleryImagesChange}
                         multiple
+                        disabled={isLoading}
+                        onUploadingChange={handleImageUploadingChange}
                       />
                     </div>
                   </div>
@@ -358,6 +372,7 @@ const ProductForm = () => {
                     <div>
                       <label className="font-medium">Stock</label>
                       <Input name="stock" type="number" value={product.stock} onChange={handleChange} disabled={isLoading} />
+                      {errors.stock && <p className="text-xs text-red-500">{errors.stock}</p>}
                     </div>
                   </div>
                 )}
@@ -404,21 +419,21 @@ const ProductForm = () => {
 
                 <div className="flex justify-between mt-8">
                   {step > 0 && (
-                    <Button type="button" variant="outline" onClick={prevStep} disabled={isLoading}>
+                    <Button type="button" variant="outline" onClick={prevStep} disabled={isLoading || imageUploadBusy}>
                       <ArrowLeft className="mr-2 h-4 w-4" /> Back
                     </Button>
                   )}
                   {step === 0 ? (
-                    <Button type="button" variant="outline" onClick={handleBack} disabled={isLoading}>
+                    <Button type="button" variant="outline" onClick={handleBack} disabled={isLoading || imageUploadBusy}>
                       <ArrowLeft className="mr-2 h-4 w-4" /> Back
                     </Button>
                   ) : null}
                   {step < steps.length - 1 ? (
-                    <Button type="button" onClick={nextStep} disabled={isLoading}>
+                    <Button type="button" onClick={nextStep} disabled={isLoading || imageUploadBusy}>
                       Next
                     </Button>
                   ) : (
-                    <Button type="submit" disabled={isLoading}>
+                    <Button type="submit" disabled={isLoading || imageUploadBusy}>
                       {isLoading ? "Saving..." : "Submit"}
                     </Button>
                   )}

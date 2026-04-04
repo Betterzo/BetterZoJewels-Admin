@@ -1,22 +1,44 @@
 import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ShoppingCart, Package, Users, MessageSquare } from "lucide-react";
-import { fetchDashboardStats, fetchOrders, fetchProducts } from "@/lib/api";
-import { Link } from "react-router-dom";
+import { fetchDashboardStats, fetchInquiries, fetchOrders, fetchProducts, fetchUsers } from "@/lib/api";
+import { Link, useNavigate } from "react-router-dom";
 import { Plus } from "lucide-react";
 
 const StatCard = ({ title, value, description, icon, color, action, to }: any) => {
-  const cardContent = (
-    <Card className="transition-shadow shadow hover:shadow-lg hover:-translate-y-1 duration-200 relative h-full">
+  const navigate = useNavigate();
+
+  const handleCardActivate = () => {
+    if (to) navigate(to);
+  };
+
+  return (
+    <Card
+      className={`transition-shadow shadow hover:shadow-lg hover:-translate-y-1 duration-200 relative h-full ${
+        to ? "cursor-pointer" : ""
+      }`}
+      role={to ? "button" : undefined}
+      tabIndex={to ? 0 : undefined}
+      onClick={to ? handleCardActivate : undefined}
+      onKeyDown={
+        to
+          ? (e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                handleCardActivate();
+              }
+            }
+          : undefined
+      }
+    >
       <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
         <CardTitle className="text-sm font-medium">{title}</CardTitle>
         <div className={`p-2 rounded-md ${color} animate-pulse-slow`}>{icon}</div>
         {action && (
           <div
             className="absolute top-3 right-3 z-10"
-            onClick={(e) => {
-              if (to) e.preventDefault();
-            }}
+            onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => e.stopPropagation()}
           >
             {action}
           </div>
@@ -28,16 +50,6 @@ const StatCard = ({ title, value, description, icon, color, action, to }: any) =
       </CardContent>
     </Card>
   );
-
-  if (to) {
-    return (
-      <Link to={to} className="block outline-none">
-        {cardContent}
-      </Link>
-    );
-  }
-
-  return cardContent;
 };
 
 const StatCardSkeleton = () => (
@@ -127,20 +139,33 @@ const Dashboard = () => {
     const loadStats = async () => {
       setLoading(true);
       try {
-        const [statsData, ordersData, productsData] = await Promise.all([
+        const [statsData, ordersData, productsData, usersData, inquiriesData] = await Promise.all([
           fetchDashboardStats().catch(() => null),
           fetchOrders({ page: 1 }).catch(() => null),
           fetchProducts({ page: 1 }).catch(() => null),
+          fetchUsers({ page: 1 }).catch(() => null),
+          fetchInquiries({ page: 1 }).catch(() => null)
         ]);
 
         const totalOrders = ordersData?.data?.total || ordersData?.data?.data?.length || 0;
         const totalProducts = productsData?.data?.total || productsData?.data?.data?.length || 0;
+        const totalUsers = usersData?.total || usersData?.data?.data?.length || 0;
+        const totalEnquiries = inquiriesData?.meta?.total || inquiriesData?.data?.meta?.length || 0;
 
         setStats({
           ...(statsData || {}),
           total_orders: totalOrders > 0 ? totalOrders : "-",
           total_products: totalProducts > 0 ? totalProducts : "-",
+          total_users: totalUsers > 0 ? totalUsers : "-",
+          total_enquiries: totalEnquiries > 0 ? totalEnquiries : "-"
         });
+        // console.log("Dashboard stats:", {
+        //   ...(statsData || {}),
+        //   total_orders: totalOrders > 0 ? totalOrders : "-",
+        //   total_products: totalProducts > 0 ? totalProducts : "-",
+        //   total_users: totalUsers > 0 ? totalUsers : "-",
+        //   total_enquiries: totalEnquiries > 0 ? totalEnquiries : "-"
+        // });
       } catch (e) {
         setStats(null);
       } finally {
@@ -190,10 +215,12 @@ const Dashboard = () => {
               color="bg-gradient-to-tr from-purple-500 to-pink-500 text-white"
               to="/products"
               action={
-                <Link to="/products/add">
-                  <button className="bg-pink-600 hover:bg-pink-700 text-white rounded-full p-1 shadow transition">
-                    <Plus className="w-4 h-4" />
-                  </button>
+                <Link
+                  to="/products/add"
+                  className="inline-flex bg-pink-600 hover:bg-pink-700 text-white rounded-full p-1 shadow transition"
+                  aria-label="Add product"
+                >
+                  <Plus className="w-4 h-4" />
                 </Link>
               }
             />
@@ -205,10 +232,12 @@ const Dashboard = () => {
               color="bg-gradient-to-tr from-orange-400 to-yellow-500 text-white"
               to="/users"
               action={
-                <Link to="/users">
-                  <button className="bg-orange-500 hover:bg-orange-600 text-white rounded-full p-1 shadow transition">
-                    <Plus className="w-4 h-4" />
-                  </button>
+                <Link
+                  to="/users"
+                  className="inline-flex bg-orange-500 hover:bg-orange-600 text-white rounded-full p-1 shadow transition"
+                  aria-label="View users"
+                >
+                  <Plus className="w-4 h-4" />
                 </Link>
               }
             />

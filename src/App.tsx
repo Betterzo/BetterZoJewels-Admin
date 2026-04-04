@@ -44,6 +44,10 @@ import ProductForm from "./pages/Products/ProductForm";
 import OrderList from "./pages/Orders/OrderList";
 import OrderDetail from "./pages/Orders/OrderDetail";
 
+// Payments history
+import PaymentsHistoryList from "./pages/paymentsHistory/PaymentsHistoryList";
+import PaymentHistoryDetail from "./pages/paymentsHistory/PaymentHistoryDetail";
+
 // NotFound
 import NotFound from "./pages/NotFound";
 
@@ -226,6 +230,10 @@ const App = () => (
             {/* Orders routes */}
             <Route path="/orders" element={<OrderList />} />
             <Route path="/orders/:id" element={<OrderDetail />} />
+
+            {/* Payments history */}
+            <Route path="/payments-history" element={<PaymentsHistoryList />} />
+            <Route path="/payments-history/:id" element={<PaymentHistoryDetail />} />
             
             {/* Settings */}
             <Route path="/settings" element={<Settings />} />

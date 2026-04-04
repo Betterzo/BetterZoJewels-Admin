@@ -125,6 +125,7 @@ const OrderDetail = () => {
       const res = await fetchOrder(id!);
       setOrder(res.data);
       // Initialize tracking data with existing values
+      console.log("Fetched order details:", res.data);
       setTrackingData({
         courier_name: res.data.courier_name || "",
         tracking_number: res.data.tracking_number || "",
@@ -492,6 +493,7 @@ const OrderDetail = () => {
                   <SelectItem value="delivered">Delivered</SelectItem>
                   <SelectItem value="cancelled">Cancelled</SelectItem>
                   <SelectItem value="refunded">Refunded</SelectItem>
+                  <SelectItem value="confirmed">Confirmed</SelectItem>
                 </SelectContent>
               </Select>
             </CardContent>

@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import api from "@/lib/api";
+import { clearTokenExpirySchedule } from "@/lib/authSession";
 
 const Logout = () => {
   const navigate = useNavigate();
@@ -26,6 +27,7 @@ const Logout = () => {
       } catch (error) {
         console.error("Logout failed:", error);
       } finally {
+        clearTokenExpirySchedule();
         localStorage.removeItem("isAuthenticated");
         localStorage.removeItem("duser");
         toast.success("Logged out successfully");

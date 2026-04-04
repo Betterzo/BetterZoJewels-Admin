@@ -1,10 +1,21 @@
 import axios from "axios";
+import { logoutSession, isUnauthorizedApiError } from "@/lib/authSession";
 
 const api = axios.create({
   baseURL: "https://api.betterzojewels.com/api/v1",
   // baseURL: "http://127.0.0.1:9000/api/v1",
   // baseURL: "http://192.168.1.5:8000/api/v1",
 });
+
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401 && isUnauthorizedApiError(error.config)) {
+      logoutSession("unauthorized");
+    }
+    return Promise.reject(error);
+  }
+);
 
 export default api;
 
@@ -258,7 +269,7 @@ export const deleteBlog = async (slug: string) => {
 
 export const fetchInquiries = async ({ page = 1, search = "" } = {}) => {
   const token = JSON.parse(localStorage.getItem("duser") || "{}")?.access_token || "";
-  console.log("token", token);
+  // console.log("token", token);
   const params = new URLSearchParams();
   params.append("page", String(page));
   if (search) params.append("search", search);
@@ -494,6 +505,29 @@ export const createScheduleRequest = async (payload: {
 };
 
 // Order APIs End
+
+// Payment history APIs (admin)
+export const fetchPayments = async ({ page = 1, search = "" } = {}) => {
+  const token = JSON.parse(localStorage.getItem("duser") || "{}")?.access_token || "";
+  const response = await api.get("/k/payments", {
+    headers: { Authorization: `Bearer ${token}` },
+    params: {
+      page,
+      search: search || undefined,
+    },
+  });
+  return response.data;
+};
+
+export const fetchPayment = async (id: string) => {
+  const token = JSON.parse(localStorage.getItem("duser") || "{}")?.access_token || "";
+  const response = await api.get(`/k/payments/${id}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return response.data;
+};
+
+// Payment history APIs End
 
 // Coupon APIs
 

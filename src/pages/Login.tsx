@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Lock } from "lucide-react";
 import { loginApi } from "@/lib/api";
 import { showApiErrorToast } from "@/lib/utils";
+import { readAndClearAuthNotice, scheduleTokenExpiryLogoutFromStoredUser } from "@/lib/authSession";
 
 const Login = () => {
   const [username, setUsername] = useState("");
@@ -14,6 +15,15 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<{ username?: string; password?: string }>({});
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const notice = readAndClearAuthNotice();
+    if (notice === "session_expired") {
+      toast.info("Session expired. Please sign in again.");
+    } else if (notice === "session_unauthorized") {
+      toast.info("Your session is no longer valid. Please sign in again.");
+    }
+  }, []);
 
   const validate = () => {
     const newErrors: { username?: string; password?: string } = {};
@@ -30,13 +40,12 @@ const Login = () => {
 
     try {
       const data = await loginApi(username, password);
-      console.log("check",data);
+      // console.log("check",data);
       if (data.roles && data.roles.includes("super admin") || data.roles.includes("admin")) {
         // console.log("check isAuthenticated");
         localStorage.setItem("isAuthenticated", "true");
         localStorage.setItem("duser", JSON.stringify(data));
-        // const userDataString = localStorage.getItem("duser");
-        // console.log('user details', userDataString);
+        scheduleTokenExpiryLogoutFromStoredUser();
         toast.success("Login successful!");
         navigate("/dashboard");
       } else {

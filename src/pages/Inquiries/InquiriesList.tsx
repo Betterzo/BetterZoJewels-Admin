@@ -54,7 +54,7 @@ const [viewOpen, setViewOpen] = useState(false);
     try {
       // console.log("Loading inquiries for page:", page, "with search query:", searchQuery);
       const res = await fetchInquiries({ page, search: searchQuery });
-      console.log("Fetched inquiries:", res);
+      // console.log("Fetched inquiries:", res);
       setInquiries(res.data || []);
       setTotalPages(res.meta.last_page || 1);
     } catch (e) {

@@ -137,7 +137,7 @@ const CategoryList = () => {
                       <TableCell>{cat.description || "-"}</TableCell>
                       <TableCell className="text-right">
                         <DropdownMenu>
-                          <DropdownMenuTrigger>
+                          <DropdownMenuTrigger asChild>
                             <Button variant="outline" size="icon">
                               <MoreHorizontal className="h-4 w-4" />
                             </Button>

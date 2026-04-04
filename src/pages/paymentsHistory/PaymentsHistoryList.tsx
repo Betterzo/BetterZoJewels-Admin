@@ -19,64 +19,63 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
-import Swal from "sweetalert2";
-import { fetchOrders, deleteOrder } from "@/lib/api";
+import { fetchPayments } from "@/lib/api";
 import { Badge } from "@/components/ui/badge";
-import OrderReportDownload from "@/components/OrderReportDownload";
 
-const OrdersSkeleton = () => (
+const PaymentsSkeleton = () => (
   <div className="p-4 space-y-4">
     {[...Array(8)].map((_, i) => (
       <div key={i} className="flex items-center space-x-4 animate-pulse">
         <div className="h-8 w-10 bg-gray-200 rounded" />
-        <div className="h-8 w-[200px] bg-gray-200 rounded" />
-        <div className="h-8 w-[150px] bg-gray-200 rounded" />
-        <div className="h-8 w-[100px] bg-gray-200 rounded" />
         <div className="h-8 w-[120px] bg-gray-200 rounded" />
+        <div className="h-8 w-[180px] bg-gray-200 rounded" />
+        <div className="h-8 w-[100px] bg-gray-200 rounded" />
+        <div className="h-8 w-[100px] bg-gray-200 rounded" />
         <div className="h-8 w-20 bg-gray-200 rounded ml-auto" />
       </div>
     ))}
   </div>
 );
 
-const getStatusBadge = (status: string) => {
-  const statusConfig: { [key: string]: { variant: "default" | "secondary" | "destructive" | "outline", label: string } } = {
+const paymentStatusBadge = (status: string) => {
+  const key = (status || "").toLowerCase();
+  const map: Record<string, { variant: "default" | "secondary" | "destructive" | "outline"; label: string }> = {
+    completed: { variant: "default", label: "Completed" },
+    paid: { variant: "default", label: "Paid" },
+    success: { variant: "default", label: "Success" },
     pending: { variant: "outline", label: "Pending" },
-    processing: { variant: "secondary", label: "Processing" },
-    shipped: { variant: "default", label: "Shipped" },
-    delivered: { variant: "default", label: "Delivered" },
-    cancelled: { variant: "destructive", label: "Cancelled" },
+    failed: { variant: "destructive", label: "Failed" },
     refunded: { variant: "destructive", label: "Refunded" },
   };
-
-  const config = statusConfig[status.toLowerCase()] || { variant: "outline", label: status };
+  const config = map[key] || { variant: "secondary" as const, label: status || "—" };
   return <Badge variant={config.variant}>{config.label}</Badge>;
 };
 
-const OrderList = () => {
-  const [orders, setOrders] = useState([]);
+const PaymentsHistoryList = () => {
+  const [payments, setPayments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
-  const fetchOrdersData = async () => {
+  const loadPayments = async () => {
     setLoading(true);
     try {
-      const res = await fetchOrders({ page, search: searchQuery });
-      // console.log("res", res);
-      setOrders(res.data?.data || []);
+      const res = await fetchPayments({ page, search: searchQuery });
+      const rows = res.data?.data ?? res.data?.payments;
+      setPayments(Array.isArray(rows) ? rows : []);
       setTotalPages(res.data?.last_page || 1);
     } catch (error) {
-      console.error("Error fetching orders:", error);
-      toast.error("Failed to load orders");
+      console.error("Error fetching payments:", error);
+      toast.error("Failed to load payments");
+      setPayments([]);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchOrdersData();
+    loadPayments();
   }, [page, searchQuery]);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -84,55 +83,52 @@ const OrderList = () => {
     setPage(1);
   };
 
-  const handleDelete = async (id: number) => {
-    const result = await Swal.fire({
-      title: "Are you sure?",
-      text: "This will delete the order permanently.",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Yes, delete it!",
-    });
-
-    if (result.isConfirmed) {
-      try {
-        await deleteOrder(String(id));
-        toast.success("Order deleted successfully");
-        fetchOrdersData();
-      } catch (error) {
-        toast.error("Failed to delete order");
-      }
-    }
-  };
-
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    if (!dateString) return "—";
+    return new Date(dateString).toLocaleDateString("en-IN", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(amount);
+    return new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
+      maximumFractionDigits: 2,
+    }).format(amount || 0);
   };
+
+  const rowAmount = (p: any) =>
+    parseFloat(p.amount ?? p.paid_amount ?? p.total ?? 0);
+
+  const rowStatus = (p: any) => p.status ?? p.payment_status ?? "";
+
+  const rowOrderId = (p: any) => p.order_id ?? p.order?.id;
+
+  const rowOrderLabel = (p: any) =>
+    p.order?.order_number ?? p.order_number ?? (rowOrderId(p) ? `#${rowOrderId(p)}` : "—");
+
+  const customerName = (p: any) =>
+    p.user_name ?? p.user?.name ?? p.customer_name ?? "—";
+
+  const customerEmail = (p: any) =>
+    p.user_email ?? p.user?.email ?? p.customer_email ?? "";
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold tracking-tight">Orders</h1>
-        <OrderReportDownload onRefresh={fetchOrdersData} />
+        <h1 className="text-3xl font-bold tracking-tight">Payments history</h1>
       </div>
 
       <Card className="p-4">
         <div className="flex items-center mb-4">
           <Search className="w-5 h-5 text-gray-500 mr-2" />
           <Input
-            placeholder="Search by order ID, customer name, or email..."
+            placeholder="Search by transaction ID, order, email, or name..."
             value={searchQuery}
             onChange={handleSearch}
             className="max-w-sm"
@@ -141,45 +137,58 @@ const OrderList = () => {
 
         <div className="rounded-md border min-h-[200px]">
           {loading ? (
-            <OrdersSkeleton />
+            <PaymentsSkeleton />
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Order ID</TableHead>
+                  <TableHead>ID</TableHead>
+                  <TableHead>Order</TableHead>
                   <TableHead>Customer</TableHead>
+                  <TableHead>Amount</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Method</TableHead>
                   <TableHead>Date</TableHead>
-                  <TableHead>Payment Status</TableHead>
-                  <TableHead>Payment Method</TableHead>
-                  <TableHead>Order Status</TableHead>
-                  <TableHead>Total</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {orders.length === 0 ? (
+                {payments.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8">
-                      No orders found.
+                    <TableCell colSpan={8} className="text-center py-8">
+                      No payments found.
                     </TableCell>
                   </TableRow>
                 ) : (
-                  orders.map((order: any) => (
-                    <TableRow key={order.id}>
-                      <TableCell className="font-medium">#{order.order_number || order.id}</TableCell>
+                  payments.map((p) => (
+                    <TableRow key={p.id}>
+                      <TableCell className="font-medium">{p.id}</TableCell>
+                      <TableCell>
+                        {rowOrderId(p) ? (
+                          <Link
+                            to={`/orders/${rowOrderId(p)}`}
+                            className="text-primary hover:underline font-medium"
+                          >
+                            {rowOrderLabel(p)}
+                          </Link>
+                        ) : (
+                          rowOrderLabel(p)
+                        )}
+                      </TableCell>
                       <TableCell>
                         <div>
-                          <div className="font-medium">{order.customer_name || order.user?.name || 'N/A'}</div>
-                          <div className="text-sm text-gray-500">{order.customer_email || order.user?.email || 'N/A'}</div>
+                          <div className="font-medium">{customerName(p)}</div>
+                          {customerEmail(p) ? (
+                            <div className="text-sm text-gray-500">{customerEmail(p)}</div>
+                          ) : null}
                         </div>
                       </TableCell>
-                      <TableCell>{formatDate(order.created_at)}</TableCell>
-                      <TableCell>{order.payment_status || 'N/A'}</TableCell>
-                      <TableCell>{order.payment_method || 'N/A'}</TableCell>
-                      <TableCell>{getStatusBadge(order.status)}</TableCell>
-                      <TableCell className="font-medium">
-                        {formatCurrency(order.total_amount || order.total || 0)}
+                      <TableCell className="font-medium">{formatCurrency(rowAmount(p))}</TableCell>
+                      <TableCell>{paymentStatusBadge(rowStatus(p))}</TableCell>
+                      <TableCell className="capitalize">
+                        {(p.payment_method ?? p.method ?? "—").toString().replace(/_/g, " ")}
                       </TableCell>
+                      <TableCell>{formatDate(p.created_at ?? p.paid_at)}</TableCell>
                       <TableCell className="text-right">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
@@ -189,14 +198,10 @@ const OrderList = () => {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem asChild>
-                              <Link to={`/orders/${order.id}`}>
+                              <Link to={`/payments-history/${p.id}`}>
                                 <Eye className="mr-2 h-4 w-4" />
-                                View Details
+                                View details
                               </Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleDelete(order.id)}>
-                              <MoreHorizontal className="mr-2 h-4 w-4" />
-                              Delete
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -213,7 +218,7 @@ const OrderList = () => {
           <div>
             Showing{" "}
             <span className="font-semibold">
-              {orders.length === 0 ? 0 : (page - 1) * 10 + 1} to{" "}
+              {payments.length === 0 ? 0 : (page - 1) * 10 + 1} to{" "}
               {page * 10 > totalPages * 10 ? totalPages * 10 : page * 10}
             </span>{" "}
             of <span className="font-semibold">{totalPages * 10}</span> entries
@@ -240,4 +245,4 @@ const OrderList = () => {
   );
 };
 
-export default OrderList; 
+export default PaymentsHistoryList;

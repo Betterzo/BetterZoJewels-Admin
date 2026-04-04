@@ -1,6 +1,7 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 import { toast } from "sonner";
+import { isAuthLogoutPending } from "@/lib/authSession";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -8,6 +9,7 @@ export function cn(...inputs: ClassValue[]) {
 
 export function showApiErrorToast(error: any, fallback = "Something went wrong") {
   if (error?.response?.status === 401 || error?.response?.status === 403) {
+    if (isAuthLogoutPending()) return;
     toast.error("You are not authorized as admin");
     return;
   }

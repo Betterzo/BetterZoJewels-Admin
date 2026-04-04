@@ -20,7 +20,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { toast } from "sonner";
-import { ArrowLeft, Calendar } from "lucide-react";
+import { ArrowLeft, Calendar, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
@@ -61,6 +61,7 @@ const BlogForm = () => {
   });
 
   const [isLoading, setIsLoading] = useState(false);
+  const [imageUploading, setImageUploading] = useState(false);
 
   useEffect(() => {
     const loadBlog = async () => {
@@ -112,12 +113,20 @@ const BlogForm = () => {
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    setImageUploading(true);
     try {
       const url = await uploadTourImage(file);
-      setBlog(prev => ({ ...prev, featuredImage: url }));
+      if (!url) {
+        toast.error("Upload did not return an image URL");
+        return;
+      }
+      setBlog((prev) => ({ ...prev, featuredImage: url }));
       toast.success("Image uploaded!");
-    } catch (error) {
+    } catch {
       toast.error("Image upload failed");
+    } finally {
+      e.target.value = "";
+      setImageUploading(false);
     }
   };
 
@@ -297,15 +306,27 @@ const BlogForm = () => {
                     name="featuredImage"
                     type="file"
                     accept="image/*"
+                    disabled={imageUploading}
                     onChange={handleImageUpload}
                   />
+                  {imageUploading && (
+                    <p className="text-sm text-muted-foreground flex items-center gap-2">
+                      <Loader2 className="h-4 w-4 animate-spin shrink-0" />
+                      Uploading image… please wait.
+                    </p>
+                  )}
                   {blog.featuredImage && (
-                    <div className="mt-2">
+                    <div className="mt-2 relative inline-block max-w-full">
                       <img
                         src={blog.featuredImage}
                         alt={blog.title}
-                        className="max-h-60 rounded-md"
+                        className={`max-h-60 rounded-md ${imageUploading ? "opacity-50" : ""}`}
                       />
+                      {imageUploading && (
+                        <div className="absolute inset-0 flex items-center justify-center rounded-md bg-background/60">
+                          <Loader2 className="h-10 w-10 animate-spin text-primary" />
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -377,7 +398,7 @@ const BlogForm = () => {
                 <Button variant="outline" onClick={() => navigate("/blogs")}>
                   Cancel
                 </Button>
-                <Button onClick={handleSubmit} disabled={isLoading}>
+                <Button onClick={handleSubmit} disabled={isLoading || imageUploading}>
                   {isLoading ? (
                     "Saving..."
                   ) : isEdit ? (

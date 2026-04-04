@@ -49,6 +49,7 @@ const ProductList = () => {
     try {
       const res = await fetchProducts({ page, search: searchTitle });
       setProducts(res.data?.data || []);
+      // console.log("Fetched products:", res.data?.data);
       setTotalPages(res.data?.last_page || 1);
     } catch (error) {
       console.error("Error fetching products:", error);
@@ -122,7 +123,7 @@ const ProductList = () => {
                   <TableHead>ID</TableHead>
                   <TableHead>SKU</TableHead>
                   <TableHead>Name</TableHead>
-                  <TableHead>Discount Price</TableHead>
+                  {/* <TableHead>Discount Price</TableHead> */}
                   <TableHead>Price</TableHead>
                   <TableHead>Stock</TableHead>
                   <TableHead>Category</TableHead>
@@ -151,13 +152,13 @@ const ProductList = () => {
                           <span className="font-medium text-gray-800">{product.name}</span>
                         </div>
                       </TableCell>
-                      <TableCell>{product.discount_price || "-"}</TableCell>
+                      {/* <TableCell>{product.discount_price || "-"}</TableCell> */}
                       <TableCell>{product.price || "-"}</TableCell>
                       <TableCell>{product.stock || "-"}</TableCell>
                       <TableCell>{product.category?.name || "-"}</TableCell>
                       <TableCell className="text-right">
                         <DropdownMenu>
-                          <DropdownMenuTrigger>
+                          <DropdownMenuTrigger asChild>
                             <Button variant="outline" size="icon">
                               <MoreHorizontal className="h-4 w-4" />
                             </Button>

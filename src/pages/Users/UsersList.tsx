@@ -39,6 +39,7 @@ const UsersList = () => {
       try {
         const data = await fetchUsers({ page, search: searchQuery });
         setUsers(data.data);
+        // console.log("Fetched users:", data);
         setTotal(data.total);
         setLastPage(data.last_page);
       } finally {
