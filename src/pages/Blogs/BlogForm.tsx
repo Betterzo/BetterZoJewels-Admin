@@ -69,12 +69,13 @@ const BlogForm = () => {
         setIsLoading(true);
         try {
           const res = await fetchBlog(id);
-          // console.log("Fetched blog data:", res.data);
+          console.log("Fetched blog data:", res.data);
           const data = res.data;
+          console.log(data.category.name);
           setBlog({
             title: data.title || "",
             author: data.author_id || "", // You may want to fetch author name if needed
-            category: data.category_id || "",
+            category: data.category.name || "",
             summary: data.short_description || "",
             content: data.content || "",
             featuredImage: data.thumbnail_image || "",
@@ -228,7 +229,7 @@ const BlogForm = () => {
                     <SelectContent>
                       <SelectGroup>
                         {BLOG_CATEGORIES.map((category, index) => (
-                          <SelectItem key={category} value={index}>
+                          <SelectItem key={category} value={String(index)}>
                             {category}
                           </SelectItem>
                         ))}

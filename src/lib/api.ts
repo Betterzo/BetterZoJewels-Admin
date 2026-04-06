@@ -509,7 +509,7 @@ export const createScheduleRequest = async (payload: {
 // Payment history APIs (admin)
 export const fetchPayments = async ({ page = 1, search = "" } = {}) => {
   const token = JSON.parse(localStorage.getItem("duser") || "{}")?.access_token || "";
-  const response = await api.get("/k/payments", {
+  const response = await api.get("/k/payment/history", {
     headers: { Authorization: `Bearer ${token}` },
     params: {
       page,
@@ -521,7 +521,7 @@ export const fetchPayments = async ({ page = 1, search = "" } = {}) => {
 
 export const fetchPayment = async (id: string) => {
   const token = JSON.parse(localStorage.getItem("duser") || "{}")?.access_token || "";
-  const response = await api.get(`/k/payments/${id}`, {
+  const response = await api.get(`/k/payment/history/${id}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   return response.data;

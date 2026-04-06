@@ -63,6 +63,7 @@ const PaymentsHistoryList = () => {
     try {
       const res = await fetchPayments({ page, search: searchQuery });
       const rows = res.data?.data ?? res.data?.payments;
+      console.log("Fetched payments data:", res.data);
       setPayments(Array.isArray(rows) ? rows : []);
       setTotalPages(res.data?.last_page || 1);
     } catch (error) {
@@ -160,9 +161,9 @@ const PaymentsHistoryList = () => {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  payments.map((p) => (
+                  payments.map((p,idx) => (
                     <TableRow key={p.id}>
-                      <TableCell className="font-medium">{p.id}</TableCell>
+                      <TableCell className="font-medium">{page === 1 ? idx + 1 : (page - 1) * 10 + idx + 1}</TableCell>
                       <TableCell>
                         {rowOrderId(p) ? (
                           <Link

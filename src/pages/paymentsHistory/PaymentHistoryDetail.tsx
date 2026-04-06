@@ -31,7 +31,7 @@ const DetailSkeleton = () => (
 
 const statusBadge = (status: string) => {
   const key = (status || "").toLowerCase();
-  const map: Record<string, { variant: "default" | "secondary" | "destructive" | "outline" }> = {
+  const map: Record<string, any> = {
     completed: { variant: "default" },
     paid: { variant: "default" },
     success: { variant: "default" },
@@ -39,7 +39,7 @@ const statusBadge = (status: string) => {
     failed: { variant: "destructive" },
     refunded: { variant: "destructive" },
   };
-  const config = map[key] || { variant: "secondary" as const };
+  const config = map[key] || { variant: "secondary" };
   return <Badge variant={config.variant}>{status || "—"}</Badge>;
 };
 
@@ -58,16 +58,39 @@ const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat("en-IN", {
     style: "currency",
     currency: "INR",
-    maximumFractionDigits: 2,
   }).format(amount || 0);
 };
 
 const normalizePayment = (raw: any) => {
   if (!raw) return null;
-  if (raw.data && typeof raw.data === "object" && !Array.isArray(raw.data)) {
-    return raw.data;
+
+  const data = raw.data ?? raw;
+
+  let paymentInfo = data.payment_information;
+
+  // 🔥 string → object
+  if (typeof paymentInfo === "string") {
+    try {
+      paymentInfo = JSON.parse(paymentInfo);
+    } catch {
+      paymentInfo = {};
+    }
   }
-  return raw;
+
+  return {
+    ...data,
+    payment_information: paymentInfo,
+
+    razorpay_order_id:
+      data.rzpay_order_id ??
+      data.razorpay_order_id ??
+      paymentInfo?.razorpay_order_id,
+
+    razorpay_payment_id:
+      data.rzpay_transaction_id ??
+      data.razorpay_payment_id ??
+      paymentInfo?.razorpay_payment_id,
+  };
 };
 
 const PaymentHistoryDetail = () => {
@@ -95,41 +118,46 @@ const PaymentHistoryDetail = () => {
     load();
   }, [id, navigate]);
 
-  if (loading) {
-    return <DetailSkeleton />;
-  }
-
-  if (!payment) {
-    return null;
-  }
+  if (loading) return <DetailSkeleton />;
+  if (!payment) return null;
 
   const amount = parseFloat(
     payment.amount ?? payment.paid_amount ?? payment.total ?? 0
   );
+
   const status = payment.status ?? payment.payment_status ?? "";
-  const orderId = payment.order_id ?? payment.order?.id;
-  const orderLabel =
-    payment.order?.order_number ??
-    payment.order_number ??
-    (orderId ? `#${orderId}` : null);
+
+  // 🔥 UNIQUE ORDERS
+  const orders =
+    payment.ordered_products?.reduce((acc: any[], item: any) => {
+      if (!acc.find((o) => o.order_id === item.order_id)) {
+        acc.push({
+          order_id: item.order_id,
+          order_number: item.order_number,
+        });
+      }
+      return acc;
+    }, []) || [];
 
   return (
     <div className="space-y-6">
+      {/* HEADER */}
       <div className="flex items-center gap-4">
         <Button variant="outline" size="icon" asChild>
-          <Link to="/payments-history" aria-label="Back to payments">
+          <Link to="/payments-history">
             <ArrowLeft className="h-4 w-4" />
           </Link>
         </Button>
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Payment #{payment.id}</h1>
-          <p className="text-muted-foreground text-sm mt-1">
-            {formatDate(payment.created_at ?? payment.paid_at)}
+          <h1 className="text-3xl font-bold">Payment #{payment.id}</h1>
+          <p className="text-sm text-muted-foreground">
+            {formatDate(payment.created_at)}
           </p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* LEFT */}
         <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -137,62 +165,68 @@ const PaymentHistoryDetail = () => {
               Payment details
             </CardTitle>
           </CardHeader>
+
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4">
               <div>
                 <p className="text-sm text-muted-foreground">Amount</p>
-                <p className="text-lg font-semibold">{formatCurrency(amount)}</p>
+                <p className="font-semibold">{formatCurrency(amount)}</p>
               </div>
+
               <div>
                 <p className="text-sm text-muted-foreground">Status</p>
-                <div className="mt-1">{statusBadge(status)}</div>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Method</p>
-                <p className="font-medium capitalize">
-                  {(payment.payment_method ?? payment.method ?? "—")
-                    .toString()
-                    .replace(/_/g, " ")}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Currency</p>
-                <p className="font-medium">{payment.currency ?? "INR"}</p>
+                {statusBadge(status)}
               </div>
             </div>
+
             <Separator />
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-              <div>
-                <p className="text-muted-foreground">Razorpay order ID</p>
-                <p className="font-mono break-all">
-                  {payment.rzpay_order_id ?? payment.razorpay_order_id ?? "—"}
-                </p>
-              </div>
-              <div>
-                <p className="text-muted-foreground">Transaction / payment ID</p>
-                <p className="font-mono break-all">
-                  {payment.rzpay_transaction_id ??
-                    payment.razorpay_payment_id ??
-                    payment.transaction_id ??
-                    "—"}
-                </p>
-              </div>
+
+            {/* Razorpay */}
+            <div>
+              <p className="text-sm text-muted-foreground">
+                Razorpay Order ID
+              </p>
+              <p className="font-mono">
+                {payment.razorpay_order_id ?? "—"}
+              </p>
             </div>
-            {payment.notes || payment.meta ? (
+
+            <div>
+              <p className="text-sm text-muted-foreground">
+                Payment ID
+              </p>
+              <p className="font-mono">
+                {payment.razorpay_payment_id ?? "—"}
+              </p>
+            </div>
+
+            {/* PRODUCTS */}
+            {payment.ordered_products?.length > 0 && (
               <>
                 <Separator />
                 <div>
-                  <p className="text-sm text-muted-foreground mb-2">Notes / metadata</p>
-                  <pre className="text-xs bg-muted p-3 rounded-md overflow-x-auto">
-                    {JSON.stringify(payment.notes ?? payment.meta, null, 2)}
-                  </pre>
+                  <p className="text-sm text-muted-foreground mb-2">
+                    Products
+                  </p>
+
+                  <div className="flex flex-wrap gap-2">
+                    {payment.ordered_products.map(
+                      (item: any, index: number) => (
+                        <Badge key={index} variant="secondary">
+                          {item.product_name}
+                        </Badge>
+                      )
+                    )}
+                  </div>
                 </div>
               </>
-            ) : null}
+            )}
           </CardContent>
         </Card>
 
+        {/* RIGHT */}
         <div className="space-y-6">
+          {/* CUSTOMER */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base">
@@ -200,38 +234,43 @@ const PaymentHistoryDetail = () => {
                 Customer
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2 text-sm">
-              <p>
-                <span className="text-muted-foreground">Name: </span>
-                {payment.user_name ?? payment.user?.name ?? payment.customer_name ?? "—"}
-              </p>
-              <p>
-                <span className="text-muted-foreground">Email: </span>
-                {payment.user_email ?? payment.user?.email ?? payment.customer_email ?? "—"}
-              </p>
-              <p>
-                <span className="text-muted-foreground">Phone: </span>
-                {payment.phone ?? payment.user?.phone ?? "—"}
-              </p>
+
+            <CardContent className="text-sm space-y-1">
+              <p>{payment.user_name}</p>
+              <p>{payment.user_email}</p>
+              <p>{payment.phone}</p>
             </CardContent>
           </Card>
 
+          {/* ORDERS */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base">
                 <Package className="h-4 w-4" />
-                Order
+                Orders
               </CardTitle>
             </CardHeader>
+
             <CardContent>
-              {orderId ? (
-                <Button variant="outline" className="w-full" asChild>
-                  <Link to={`/orders/${orderId}`}>
-                    Open order {orderLabel ? `(${orderLabel})` : ""}
-                  </Link>
-                </Button>
+              {orders.length > 0 ? (
+                <div className="space-y-2">
+                  {orders.map((order: any, index: number) => (
+                    <Button
+                      key={index}
+                      variant="outline"
+                      className="w-full"
+                      asChild
+                    >
+                      <Link to={`/orders/${order.order_id}`}>
+                        Open order ({order.order_number})
+                      </Link>
+                    </Button>
+                  ))}
+                </div>
               ) : (
-                <p className="text-sm text-muted-foreground">No linked order.</p>
+                <p className="text-sm text-muted-foreground">
+                  No linked order.
+                </p>
               )}
             </CardContent>
           </Card>

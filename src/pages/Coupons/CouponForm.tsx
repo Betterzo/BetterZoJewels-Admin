@@ -26,7 +26,7 @@ const CouponForm = () => {
   const [startAt, setStartAt] = useState("");
   const [endAt, setEndAt] = useState("");
   const [usageLimit, setUsageLimit] = useState("");
-  const [used, setUsed] = useState("");
+  const [used, setUsed] = useState(0);
   const [isActive, setIsActive] = useState(true);
   const [loading, setLoading] = useState(false);
   const [code, setCode] = useState("");
@@ -45,7 +45,7 @@ const CouponForm = () => {
           setStartAt(c.start_at ? c.start_at.slice(0, 10) : "");
           setEndAt(c.end_at ? c.end_at.slice(0, 10) : "");
           setUsageLimit(c.usage_limit !== null ? String(c.usage_limit) : "");
-          setUsed(c.used !== null ? String(c.used) : "");
+          setUsed(c.used !== null ? c.used : 0);
           setIsActive(!!c.is_active);
           setCode(c.code || "");
         })
