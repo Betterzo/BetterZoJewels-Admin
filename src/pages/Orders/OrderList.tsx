@@ -58,15 +58,17 @@ const OrderList = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [page, setPage] = useState(1);
+  const [perPage, setPerPage] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
 
   const fetchOrdersData = async () => {
     setLoading(true);
     try {
-      const res = await fetchOrders({ page, search: searchQuery });
-      // console.log("res", res);
+      const res = await fetchOrders({ page, search: searchQuery, per_page: perPage });
+      console.log("res", res);
       setOrders(res.data?.data || []);
       setTotalPages(res.data?.last_page || 1);
+      setPerPage(res.data.per_page)
     } catch (error) {
       console.error("Error fetching orders:", error);
       toast.error("Failed to load orders");
@@ -146,6 +148,7 @@ const OrderList = () => {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>S.No.</TableHead>
                   <TableHead>Order ID</TableHead>
                   <TableHead>Customer</TableHead>
                   <TableHead>Date</TableHead>
@@ -164,8 +167,9 @@ const OrderList = () => {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  orders.map((order: any) => (
+                  orders.map((order: any, idx: number) => (
                     <TableRow key={order.id}>
+                      <TableCell className="font-medium">{(page - 1) * perPage + idx + 1}</TableCell>
                       <TableCell className="font-medium">#{order.order_number || order.id}</TableCell>
                       <TableCell>
                         <div>

@@ -25,20 +25,15 @@ import { format } from "date-fns";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
-import { fetchBlog, createBlog, updateBlog, uploadTourImage } from "@/lib/api"; // <-- import your API
+import {
+  fetchBlog,
+  createBlog,
+  updateBlog,
+  uploadTourImage,
+  fetchBlogCategories,
+} from "@/lib/api";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
-
-const BLOG_CATEGORIES = [
-  "Travel Guide",
-  "Food & Cuisine",
-  "Cultural",
-  "Adventure",
-  "Travel Tips",
-  "Accommodation",
-  "Transportation",
-  "Shopping",
-];
 
 const BlogForm = () => {
   const { id } = useParams();
@@ -62,6 +57,34 @@ const BlogForm = () => {
 
   const [isLoading, setIsLoading] = useState(false);
   const [imageUploading, setImageUploading] = useState(false);
+  const [blogCategories, setBlogCategories] = useState<any[]>([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(false);
+
+  const normalizeBlogCategories = (res: any) => {
+    const source =
+      res?.data?.data ??
+      res?.data ??
+      res?.categories ??
+      res;
+    if (!Array.isArray(source)) return [];
+    return source
+      .map((c: any) => ({
+        id: c?.id,
+        name: c?.name || c?.title || "",
+      }))
+      .filter((c: any) => c.id !== undefined && c.id !== null && c.name);
+  };
+
+  useEffect(() => {
+    setCategoriesLoading(true);
+    fetchBlogCategories()
+      .then((res) => setBlogCategories(normalizeBlogCategories(res)))
+      .catch(() => {
+        setBlogCategories([]);
+        toast.error("Failed to load blog categories");
+      })
+      .finally(() => setCategoriesLoading(false));
+  }, []);
 
   useEffect(() => {
     const loadBlog = async () => {
@@ -69,13 +92,11 @@ const BlogForm = () => {
         setIsLoading(true);
         try {
           const res = await fetchBlog(id);
-          console.log("Fetched blog data:", res.data);
           const data = res.data;
-          console.log(data.category.name);
           setBlog({
             title: data.title || "",
             author: data.author_id || "", // You may want to fetch author name if needed
-            category: data.category.name || "",
+            category: data.category_id ? String(data.category_id) : "",
             summary: data.short_description || "",
             content: data.content || "",
             featuredImage: data.thumbnail_image || "",
@@ -222,15 +243,24 @@ const BlogForm = () => {
                   <Select
                     value={blog.category}
                     onValueChange={(value) => handleSelectChange("category", value)}
+                    disabled={categoriesLoading}
                   >
                     <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select category" />
+                      <SelectValue
+                        placeholder={
+                          categoriesLoading
+                            ? "Loading categories..."
+                            : blogCategories.length === 0
+                            ? "No categories found"
+                            : "Select category"
+                        }
+                      />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
-                        {BLOG_CATEGORIES.map((category, index) => (
-                          <SelectItem key={category} value={String(index)}>
-                            {category}
+                        {blogCategories.map((category: any) => (
+                          <SelectItem key={category.id} value={String(category.id)}>
+                            {category.name}
                           </SelectItem>
                         ))}
                       </SelectGroup>

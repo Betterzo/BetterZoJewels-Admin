@@ -266,6 +266,65 @@ export const deleteBlog = async (slug: string) => {
 
 };
 
+// Blog Category APIs
+
+export const fetchBlogCategories = async ({ page = 1, search = "" } = {}) => {
+  const token = JSON.parse(localStorage.getItem("duser") || "{}")?.access_token || "";
+  const response = await api.get("/blog/categories", {
+    headers: { Authorization: `Bearer ${token}` },
+    params: {
+      page,
+      title: search || undefined,
+      name: search || undefined,
+      search: search || undefined,
+    },
+  });
+  return response.data;
+};
+
+export const fetchAllBlogCategories = async () => {
+  const token = JSON.parse(localStorage.getItem("duser") || "{}")?.access_token || "";
+  const response = await api.get("/blog-category/list", {
+    headers: { Authorization: `Bearer ${token}` },
+    params: { per_page: 1000 },
+  });
+  return response.data;
+};
+
+export const fetchBlogCategory = async (id: string) => {
+  const token = JSON.parse(localStorage.getItem("duser") || "{}")?.access_token || "";
+  const response = await api.get(`/blog/categories/${id}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return response.data;
+};
+
+export const createBlogCategory = async (payload: any) => {
+  const token = JSON.parse(localStorage.getItem("duser") || "{}")?.access_token || "";
+  const response = await api.post("/blog/category/create", payload, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return response.data;
+};
+
+export const updateBlogCategory = async (id: string, payload: any) => {
+  const token = JSON.parse(localStorage.getItem("duser") || "{}")?.access_token || "";
+  const response = await api.put(`/blog/category/update/${id}`, payload, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return response.data;
+};
+
+export const deleteBlogCategory = async (id: string) => {
+  const token = JSON.parse(localStorage.getItem("duser") || "{}")?.access_token || "";
+  const response = await api.delete(`/blog/category/delete/${id}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return response.data;
+};
+
+// Blog Category APIs End
+
 
 export const fetchInquiries = async ({ page = 1, search = "" } = {}) => {
   const token = JSON.parse(localStorage.getItem("duser") || "{}")?.access_token || "";
@@ -380,12 +439,13 @@ export const deleteProduct = async (id: string) => {
 
 // Order APIs
 
-export const fetchOrders = async ({ page = 1, search = "" } = {}) => {
+export const fetchOrders = async ({ page = 1, search = "", per_page = 10 } = {}) => {
   const token = JSON.parse(localStorage.getItem("duser") || "{}")?.access_token || "";
   const response = await api.get("/k/orders", {
     headers: { Authorization: `Bearer ${token}` },
     params: {
       page,
+      per_page,
       search: search || undefined, // will exclude 'search' if empty
     },
   });

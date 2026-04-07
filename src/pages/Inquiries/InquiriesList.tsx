@@ -46,6 +46,7 @@ const Inquiries = () => {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [perPage, setPerPage] = useState(10);
   const [selectedInquiry, setSelectedInquiry] = useState<any>(null);
 const [viewOpen, setViewOpen] = useState(false);
 
@@ -57,6 +58,7 @@ const [viewOpen, setViewOpen] = useState(false);
       // console.log("Fetched inquiries:", res);
       setInquiries(res.data || []);
       setTotalPages(res.meta.last_page || 1);
+      setPerPage(res.meta?.per_page || 10);
     } catch (e) {
       toast.error("Failed to load inquiries");
       console.error("Error fetching inquiries:", e);
@@ -106,7 +108,7 @@ const [viewOpen, setViewOpen] = useState(false);
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[100px]">ID</TableHead>
+                  <TableHead className="w-[100px]">S.No.</TableHead>
                   <TableHead>Name</TableHead>
                   <TableHead>Email</TableHead>
                   {/* <TableHead>Category</TableHead> */}
@@ -118,14 +120,14 @@ const [viewOpen, setViewOpen] = useState(false);
               <TableBody>
                 {inquiries.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8">
+                    <TableCell colSpan={6} className="text-center py-8">
                       No inquiries found. Try a different search term or create a new inquiry.
                     </TableCell>
                   </TableRow>
                 ) : (
-                  inquiries.map((inquiry: any) => (
+                  inquiries.map((inquiry: any, idx: number) => (
                     <TableRow key={inquiry.id}>
-                      <TableCell className="font-medium">{inquiry.id}</TableCell>
+                      <TableCell className="font-medium">{(page - 1) * perPage + idx + 1}</TableCell>
                       <TableCell>{inquiry.name}</TableCell>
                       <TableCell>{inquiry.email}</TableCell>
                       {/* <TableCell>{inquiry.author}</TableCell> */}

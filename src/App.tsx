@@ -22,6 +22,8 @@ import Dashboard from "./pages/Dashboard";
 // Blogs
 import BlogsList from "./pages/Blogs/BlogsList";
 import BlogForm from "./pages/Blogs/BlogForm";
+import BlogCategoryList from "./pages/BlogCategories/BlogCategoryList";
+import BlogCategoryForm from "./pages/BlogCategories/BlogCategoryForm";
 
 // Bookings and Users
 import UsersList from "./pages/Users/UsersList";
@@ -211,6 +213,9 @@ const App = () => (
             <Route path="/blogs" element={<BlogsList />} />
             <Route path="/blogs/add" element={<BlogForm />} />
             <Route path="/blogs/edit/:id" element={<BlogForm />} />
+            <Route path="/blog-categories" element={<BlogCategoryList />} />
+            <Route path="/blog-categories/add" element={<BlogCategoryForm />} />
+            <Route path="/blog-categories/edit/:id" element={<BlogCategoryForm />} />
             
             {/* Bookings and users routes */}
             <Route path="/users" element={<UsersList />} />

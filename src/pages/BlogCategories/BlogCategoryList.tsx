@@ -20,9 +20,9 @@ import {
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import Swal from "sweetalert2";
-import {categoryFetchList, deleteCategory} from "@/lib/api";
+import { fetchBlogCategories, deleteBlogCategory } from "@/lib/api";
 
-const CategoriesSkeleton = () => (
+const BlogCategoriesSkeleton = () => (
   <div className="p-4 space-y-4">
     {[...Array(8)].map((_, i) => (
       <div key={i} className="flex items-center space-x-4 animate-pulse">
@@ -35,32 +35,31 @@ const CategoriesSkeleton = () => (
   </div>
 );
 
-const CategoryList = () => {
-  const [categories, setCategories] = useState([]);
+const BlogCategoryList = () => {
+  const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTitle, setSearchTitle] = useState("");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [perPage, setPerPage] = useState(10);
 
-  const fetchCategories = async () => {
-  setLoading(true);
-  try {
-    const res = await categoryFetchList({ page, search: searchTitle });
-
-    setCategories(res.data?.data || []);
-    setTotalPages(res.data?.last_page || 1);
-    setPerPage(res.data?.per_page || 10);
-  } catch (error) {
-    console.error("Error fetching categories:", error);
-    toast.error("Failed to load categories");
-  } finally {
-    setLoading(false);
-  }
-};
+  const loadCategories = async () => {
+    setLoading(true);
+    try {
+      const res = await fetchBlogCategories({ page, search: searchTitle });
+      setCategories(res.data?.data || []);
+      setTotalPages(res.data?.last_page || 1);
+      setPerPage(res.data?.per_page || 10);
+    } catch (error) {
+      console.error("Error fetching blog categories:", error);
+      toast.error("Failed to load blog categories");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    fetchCategories();
+    loadCategories();
   }, [page, searchTitle]);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -71,31 +70,30 @@ const CategoryList = () => {
   const handleDelete = async (id: number) => {
     const result = await Swal.fire({
       title: "Are you sure?",
-      text: "This will delete the category permanently.",
+      text: "This will delete the blog category permanently.",
       icon: "warning",
       showCancelButton: true,
       confirmButtonText: "Yes, delete it!",
     });
 
-    if (result.isConfirmed) {
-      try {
-        await deleteCategory(id);
-        toast.success("Category deleted successfully");
-        fetchCategories();
-      } catch (error) {
-        toast.error("Failed to delete category");
-      }
+    if (!result.isConfirmed) return;
+    try {
+      await deleteBlogCategory(String(id));
+      toast.success("Blog category deleted successfully");
+      loadCategories();
+    } catch {
+      toast.error("Failed to delete blog category");
     }
   };
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold tracking-tight">Categories</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Blog Categories</h1>
         <Button asChild>
-          <Link to="/categories/add">
+          <Link to="/blog-categories/add">
             <Plus className="mr-2 h-4 w-4" />
-            Add New Category
+            Add New Blog Category
           </Link>
         </Button>
       </div>
@@ -104,7 +102,7 @@ const CategoryList = () => {
         <div className="flex items-center mb-4">
           <Search className="w-5 h-5 text-gray-500 mr-2" />
           <Input
-            placeholder="Search by title..."
+            placeholder="Search by name..."
             value={searchTitle}
             onChange={handleSearch}
             className="max-w-sm"
@@ -113,13 +111,15 @@ const CategoryList = () => {
 
         <div className="rounded-md border min-h-[200px]">
           {loading ? (
-            <CategoriesSkeleton />
+            <BlogCategoriesSkeleton />
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>S.No.</TableHead>
+                  <TableHead>Image</TableHead>
                   <TableHead>Title</TableHead>
+                  <TableHead>Meta Title</TableHead>
                   <TableHead>Description</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
@@ -127,16 +127,28 @@ const CategoryList = () => {
               <TableBody>
                 {categories.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={4} className="text-center py-8">
-                      No categories found.
+                    <TableCell colSpan={6} className="text-center py-8">
+                      No blog categories found.
                     </TableCell>
                   </TableRow>
                 ) : (
                   categories.map((cat: any, idx: number) => (
                     <TableRow key={cat.id}>
                       <TableCell>{(page - 1) * perPage + idx + 1}</TableCell>
-                      <TableCell>{cat.name}</TableCell>
-                      <TableCell>{cat.description || "-"}</TableCell>
+                      <TableCell>
+                        {cat.image ? (
+                          <img
+                            src={cat.image}
+                            alt={cat.title || cat.name || "category"}
+                            className="h-10 w-10 rounded object-cover border"
+                          />
+                        ) : (
+                          "-"
+                        )}
+                      </TableCell>
+                      <TableCell>{cat.title || cat.name || "-"}</TableCell>
+                      <TableCell>{cat.meta_title || "-"}</TableCell>
+                      <TableCell className="max-w-[300px] truncate">{cat.description || "-"}</TableCell>
                       <TableCell className="text-right">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
@@ -146,7 +158,7 @@ const CategoryList = () => {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem asChild>
-                              <Link to={`/categories/edit/${cat.id}`}>
+                              <Link to={`/blog-categories/edit/${cat.id}`}>
                                 <Edit className="mr-2 h-4 w-4" />
                                 Edit
                               </Link>
@@ -197,4 +209,4 @@ const CategoryList = () => {
   );
 };
 
-export default CategoryList;
+export default BlogCategoryList;

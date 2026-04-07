@@ -30,6 +30,7 @@ const UsersList = () => {
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [lastPage, setLastPage] = useState(1);
+  const [perPage, setPerPage] = useState(10);
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [showModal, setShowModal] = useState(false);
 
@@ -42,6 +43,7 @@ const UsersList = () => {
         // console.log("Fetched users:", data);
         setTotal(data.total);
         setLastPage(data.last_page);
+        setPerPage(data.per_page || 10);
       } finally {
         setLoading(false);
       }
@@ -121,7 +123,7 @@ const UsersList = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="px-4 py-2">User ID</TableHead>
+                <TableHead className="px-4 py-2">S.No.</TableHead>
                 <TableHead className="px-4 py-2">Name</TableHead>
                 <TableHead className="px-4 py-2">Email</TableHead>
                 <TableHead className="px-4 py-2">Phone</TableHead>
@@ -131,15 +133,15 @@ const UsersList = () => {
             <TableBody>
               {filteredUsers.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center py-8">
+                  <TableCell colSpan={5} className="text-center py-8">
                     No users found. Try a different search term.
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredUsers.map((user) => (
+                filteredUsers.map((user, idx) => (
                   <TableRow key={user.id}>
                     <TableCell className="px-4 py-2 font-medium">
-                      {user.id}
+                      {(page - 1) * perPage + idx + 1}
                     </TableCell>
                     <TableCell className="px-4 py-2">{user.name}</TableCell>
                     <TableCell className="px-4 py-2">{user.email}</TableCell>

@@ -43,6 +43,7 @@ const ProductList = () => {
   const [searchTitle, setSearchTitle] = useState("");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [perPage, setPerPage] = useState(10);
 
   const fetchProductList = async () => {
     setLoading(true);
@@ -51,6 +52,7 @@ const ProductList = () => {
       setProducts(res.data?.data || []);
       // console.log("Fetched products:", res.data?.data);
       setTotalPages(res.data?.last_page || 1);
+      setPerPage(res.data?.per_page || 10);
     } catch (error) {
       console.error("Error fetching products:", error);
       toast.error("Failed to load products");
@@ -120,7 +122,7 @@ const ProductList = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>ID</TableHead>
+                  <TableHead>S.No.</TableHead>
                   <TableHead>SKU</TableHead>
                   <TableHead>Name</TableHead>
                   {/* <TableHead>Discount Price</TableHead> */}
@@ -133,14 +135,14 @@ const ProductList = () => {
               <TableBody>
                 {products.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8">
+                    <TableCell colSpan={7} className="text-center py-8">
                       No products found.
                     </TableCell>
                   </TableRow>
                 ) : (
-                  products.map((product: any) => (
+                  products.map((product: any, idx: number) => (
                     <TableRow key={product.id}>
-                      <TableCell>{product.id}</TableCell>
+                      <TableCell>{(page - 1) * perPage + idx + 1}</TableCell>
                       <TableCell>{product.sku || "-"}</TableCell>
                       <TableCell>
                         <div className="flex items-center space-x-3">

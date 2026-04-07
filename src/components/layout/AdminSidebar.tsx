@@ -6,17 +6,17 @@ import {
   Settings,
   Users,
   LogIn,
-  FileText,
   Home,
   Menu,
   X,
-  Images,
   Grid2x2Plus,
   Boxes,
   ShoppingCart,
   Percent,
   MessageCircle,
   CreditCard,
+  BookOpen,
+  ChevronDown,
 } from "lucide-react";
 
 type SidebarItemProps = {
@@ -48,15 +48,21 @@ const SidebarItem = ({ icon: Icon, label, to, isActive }: SidebarItemProps) => {
 const AdminSidebar = () => {
   const location = useLocation();
   const [isOpen, setIsOpen] = useState(true);
+  const [productMenuOpen, setProductMenuOpen] = useState(
+    location.pathname.startsWith("/products") || location.pathname.startsWith("/categories")
+  );
+  const [blogMenuOpen, setBlogMenuOpen] = useState(
+    location.pathname.startsWith("/blogs") || location.pathname.startsWith("/blog-categories")
+  );
 
-  const menuItems = [
+  const topMenuItems = [
     { icon: Home, label: "Dashboard", to: "/dashboard" },
-    { icon: Grid2x2Plus, label: "Categories", to: "/categories" },
-    { icon: Boxes, label: "Products", to: "/products" },
     { icon: ShoppingCart, label: "Orders", to: "/orders" },
     { icon: CreditCard, label: "Payments history", to: "/payments-history" },
     { icon: Percent, label: "Coupons", to: "/coupons" },
-    { icon: FileText, label: "Blogs", to: "/blogs" },
+  ];
+
+  const bottomMenuItems = [
     { icon: MessageCircle, label: "Inquiries", to: "/inquiries" },
     { icon: Users, label: "Users", to: "/users" },
     { icon: Settings, label: "Settings", to: "/settings" },
@@ -99,7 +105,7 @@ const AdminSidebar = () => {
           {/* Menu Items */}
           <div className="flex-1 overflow-y-auto py-4 px-3 custom-scrollbar">
             <div className="space-y-1">
-              {menuItems.map((item) => (
+              {topMenuItems.map((item) => (
                 <SidebarItem
                   key={item.to}
                   icon={item.icon}
@@ -108,8 +114,95 @@ const AdminSidebar = () => {
                   isActive={
                     item.to === "/payments-history"
                       ? location.pathname.startsWith("/payments-history")
+                      : item.to === "/blog-categories"
+                      ? location.pathname.startsWith("/blog-categories")
                       : location.pathname === item.to
                   }
+                />
+              ))}
+
+              <Button
+                variant="ghost"
+                className={cn(
+                  "w-full justify-between gap-3 pl-4 py-3 rounded-lg font-medium transition-all duration-200",
+                  location.pathname.startsWith("/products") || location.pathname.startsWith("/categories")
+                    ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-inner"
+                    : "hover:bg-sidebar-accent/20 hover:text-sidebar-foreground text-sidebar-foreground/80"
+                )}
+                onClick={() => setProductMenuOpen((prev) => !prev)}
+              >
+                <span className="flex items-center gap-3">
+                  <Boxes size={20} />
+                  <span>Product Management</span>
+                </span>
+                <ChevronDown
+                  size={16}
+                  className={cn("transition-transform", productMenuOpen ? "rotate-180" : "rotate-0")}
+                />
+              </Button>
+              {productMenuOpen && (
+                <div className="ml-4 space-y-1">
+                  <SidebarItem
+                    icon={Boxes}
+                    label="Products"
+                    to="/products"
+                    isActive={location.pathname === "/products"}
+                  />
+                  <SidebarItem
+                    icon={Grid2x2Plus}
+                    label="Categories"
+                    to="/categories"
+                    isActive={location.pathname === "/categories"}
+                  />
+                 
+                </div>
+              )}
+
+              <Button
+                variant="ghost"
+                className={cn(
+                  "w-full justify-between gap-3 pl-4 py-3 rounded-lg font-medium transition-all duration-200",
+                  location.pathname.startsWith("/blogs") || location.pathname.startsWith("/blog-categories")
+                    ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-inner"
+                    : "hover:bg-sidebar-accent/20 hover:text-sidebar-foreground text-sidebar-foreground/80"
+                )}
+                onClick={() => setBlogMenuOpen((prev) => !prev)}
+              >
+                <span className="flex items-center gap-3">
+                  <BookOpen size={20} />
+                  <span>Blog Management</span>
+                </span>
+                <ChevronDown
+                  size={16}
+                  className={cn("transition-transform", blogMenuOpen ? "rotate-180" : "rotate-0")}
+                />
+              </Button>
+
+              {blogMenuOpen && (
+                <div className="ml-4 space-y-1">
+                  <SidebarItem
+                    icon={BookOpen}
+                    label="Blog"
+                    to="/blogs"
+                    isActive={location.pathname === "/blogs"}
+                  />
+                
+                  <SidebarItem
+                    icon={BookOpen}
+                    label="Blog Categories"
+                    to="/blog-categories"
+                    isActive={location.pathname.startsWith("/blog-categories")}
+                  />
+                </div>
+              )}
+
+              {bottomMenuItems.map((item) => (
+                <SidebarItem
+                  key={item.to}
+                  icon={item.icon}
+                  label={item.label}
+                  to={item.to}
+                  isActive={location.pathname === item.to}
                 />
               ))}
             </div>

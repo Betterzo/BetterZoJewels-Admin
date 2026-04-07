@@ -43,6 +43,7 @@ const CouponList = () => {
   const [searchTitle, setSearchTitle] = useState("");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [perPage, setPerPage] = useState(10);
 
   const fetchCouponList = async () => {
     setLoading(true);
@@ -50,6 +51,7 @@ const CouponList = () => {
       const res = await fetchCoupons({ page, search: searchTitle });
       setCoupons(res.data?.data || []);
       setTotalPages(res.data?.last_page || 1);
+      setPerPage(res.data?.per_page || 10);
     } catch (error) {
       console.error("Error fetching coupons:", error);
       toast.error("Failed to load coupons");
@@ -117,7 +119,7 @@ const CouponList = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>ID</TableHead>
+                  <TableHead>S.No.</TableHead>
                   <TableHead>Code</TableHead>
                   <TableHead>Type</TableHead>
                   <TableHead>Value</TableHead>
@@ -134,14 +136,14 @@ const CouponList = () => {
               <TableBody>
                 {coupons.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={11} className="text-center py-8">
+                    <TableCell colSpan={12} className="text-center py-8">
                       No coupons found.
                     </TableCell>
                   </TableRow>
                 ) : (
-                  coupons.map((coupon: any) => (
+                  coupons.map((coupon: any, idx: number) => (
                     <TableRow key={coupon.id}>
-                      <TableCell>{coupon.id}</TableCell>
+                      <TableCell>{(page - 1) * perPage + idx + 1}</TableCell>
                       <TableCell>
                         <Link to={`/coupons/edit/${coupon.id}`} className="text-blue-600 hover:underline">
                           {coupon.code}

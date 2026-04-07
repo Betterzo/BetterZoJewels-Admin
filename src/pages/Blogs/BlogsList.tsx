@@ -45,6 +45,7 @@ const BlogsList = () => {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [perPage, setPerPage] = useState(10);
 
   const loadBlogs = async () => {
     setLoading(true);
@@ -53,6 +54,7 @@ const BlogsList = () => {
       const res = await fetchBlogs({ page, search: searchQuery });
       setBlogs(res.data.data || []);
       setTotalPages(res.last_page || 1);
+      setPerPage(res.per_page || res.data?.per_page || 10);
     } catch (e) {
       toast.error("Failed to load blogs");
     } finally {
@@ -122,7 +124,7 @@ const BlogsList = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[100px]">ID</TableHead>
+                  <TableHead className="w-[100px]">S.No.</TableHead>
                   <TableHead>Title</TableHead>
                   {/* <TableHead>Author</TableHead>
                   <TableHead>Category</TableHead> */}
@@ -139,9 +141,9 @@ const BlogsList = () => {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  blogs.map((blog: any) => (
+                  blogs.map((blog: any, idx: number) => (
                     <TableRow key={blog.id}>
-                      <TableCell className="font-medium">{blog.id}</TableCell>
+                      <TableCell className="font-medium">{(page - 1) * perPage + idx + 1}</TableCell>
                       <TableCell>{blog.title}</TableCell>
                       {/* <TableCell>{blog.author}</TableCell>
                       <TableCell>{blog.category}</TableCell> */}

@@ -57,6 +57,7 @@ const PaymentsHistoryList = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [perPage, setPerPage] = useState(10);
 
   const loadPayments = async () => {
     setLoading(true);
@@ -66,6 +67,7 @@ const PaymentsHistoryList = () => {
       console.log("Fetched payments data:", res.data);
       setPayments(Array.isArray(rows) ? rows : []);
       setTotalPages(res.data?.last_page || 1);
+      setPerPage(res.data?.per_page || 10);
     } catch (error) {
       console.error("Error fetching payments:", error);
       toast.error("Failed to load payments");
@@ -143,8 +145,8 @@ const PaymentsHistoryList = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>ID</TableHead>
-                  <TableHead>Order</TableHead>
+                  <TableHead>S.No.</TableHead>
+                  <TableHead>Order Id</TableHead>
                   <TableHead>Customer</TableHead>
                   <TableHead>Amount</TableHead>
                   <TableHead>Status</TableHead>
@@ -161,9 +163,9 @@ const PaymentsHistoryList = () => {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  payments.map((p,idx) => (
+                  payments.map((p, idx) => (
                     <TableRow key={p.id}>
-                      <TableCell className="font-medium">{page === 1 ? idx + 1 : (page - 1) * 10 + idx + 1}</TableCell>
+                      <TableCell className="font-medium">{(page - 1) * perPage + idx + 1}</TableCell>
                       <TableCell>
                         {rowOrderId(p) ? (
                           <Link
