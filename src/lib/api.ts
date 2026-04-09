@@ -208,16 +208,22 @@ export const deleteCategory = async (id: string) => {
 // other APIs
 
 export const fetchBlogs = async ({ page = 1, search = "" } = {}) => {
+  const token = JSON.parse(localStorage.getItem("duser") || "{}")?.access_token || "";
   const params = new URLSearchParams();
   params.append("page", String(page));
   if (search) params.append("title", search);
   // console.log("Fetching blogs with params:", params.toString());
-  const response = await api.get(`/blogs?${params.toString()}`);
+  const response = await api.get(`/k/blogs?${params.toString()}`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
   return response.data;
 };
 
 export const fetchBlog = async (slugOrId: string) => {
-  const response = await api.get(`/blogs/${slugOrId}`);
+  const token = JSON.parse(localStorage.getItem("duser") || "{}")?.access_token || "";
+  const response = await api.get(`/k/blogs/${slugOrId}`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
   return response.data;
 };
 
