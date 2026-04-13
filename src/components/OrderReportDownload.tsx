@@ -114,7 +114,7 @@ const OrderReportDownload: React.FC<OrderReportDownloadProps> = ({ onRefresh }) 
         command: filterCommand === "all" ? "" : filterCommand 
       });
       // console.log("Schedule data response:", res.data?.data);
-      setScheduleList(res.data?.data || []);
+      setScheduleList(res.data || []);
     } catch (error) {
       console.error("Error fetching schedule list:", error);
       toast.error("Failed to load report history");
@@ -176,11 +176,12 @@ const OrderReportDownload: React.FC<OrderReportDownloadProps> = ({ onRefresh }) 
 
       const argumentsArray = argumentsObj;
 
-      await createScheduleRequest({
+     const res = await createScheduleRequest({
         command: "bulkOrderDownload",
         type: "order",
         arguments: argumentsArray
       });
+      console.log("Create schedule request response:", res.data);
       toast.success("Report generation request created successfully" ,{ duration: 1500});
       fetchScheduleData();
       onRefresh?.();

@@ -552,6 +552,7 @@ export const fetchScheduleList = async ({ page = 1, type = "", command = "" } = 
       command: command || undefined,
     },
   });
+  console.log("Fetched schedule list:", response.data);
   return response.data;
 };
 
@@ -567,6 +568,7 @@ export const createScheduleRequest = async (payload: {
       'Content-Type': 'application/json'
     }
   });
+  console.log("Created schedule request:", response.data);
   return response.data;
 };
 

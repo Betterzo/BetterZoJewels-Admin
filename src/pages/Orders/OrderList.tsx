@@ -65,7 +65,7 @@ const OrderList = () => {
     setLoading(true);
     try {
       const res = await fetchOrders({ page, search: searchQuery, per_page: perPage });
-      console.log("res", res);
+      // console.log("res", res);
       setOrders(res.data?.data || []);
       setTotalPages(res.data?.last_page || 1);
       setPerPage(res.data.per_page)
