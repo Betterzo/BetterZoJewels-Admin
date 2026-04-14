@@ -79,7 +79,7 @@ const CategoryList = () => {
 
     if (result.isConfirmed) {
       try {
-        await deleteCategory(id);
+        await deleteCategory(String(id));
         toast.success("Category deleted successfully");
         fetchCategories();
       } catch (error) {

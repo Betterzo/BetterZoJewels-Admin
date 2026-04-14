@@ -10,6 +10,8 @@ import { toast } from "sonner";
 import { fetchProduct, createProduct, updateProduct, fetchAllCategories } from "@/lib/api";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle } from "@/components/ui/dialog";
+import ReactQuill from "react-quill";
+import "react-quill/dist/quill.snow.css";
 
 const steps = [
   "Title & Meta",
@@ -25,6 +27,7 @@ const initialProduct = {
   meta_title: "",
   meta_description: "",
   meta_keywords: "",
+  description: "",
   featured_image: "",
   gallery_images: [] as string[],
   price: "",
@@ -137,9 +140,9 @@ const ProductForm = () => {
       if (!product.name) newErrors.name = "Title is required";
       if (!product.category_id) newErrors.category_id = "Category is required";
     }
-    // if (step === 1) {
-    //   if (!product.featured_image.length) newErrors.featured_image = "At least one image is required";
-    // }
+    if (step === 1) {
+      if (!product.featured_image.length) newErrors.featured_image = "Featured image is required";
+    }
     if (step === 2) {
       if (!product.price) newErrors.price = "Price is required";
       if(!isNaN(Number(product.price)) && Number(product.price) < 0) newErrors.price = "Price cannot be negative";
@@ -169,6 +172,11 @@ const ProductForm = () => {
   // Handle category change
   const handleCategoryChange = (value: string) => {
     setProduct((prev) => ({ ...prev, category_id: value }));
+    setDirty(true);
+  };
+
+  const handleDescriptionChange = (value: string) => {
+    setProduct((prev) => ({ ...prev, description: value }));
     setDirty(true);
   };
 
@@ -327,6 +335,17 @@ const ProductForm = () => {
                         </Select>
                       )}
                       {errors.category_id && <p className="text-xs text-red-500">{errors.category_id}</p>}
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="font-medium">Description</label>
+                      <div className="mt-2">
+                        <ReactQuill
+                          theme="snow"
+                          value={product.description}
+                          onChange={handleDescriptionChange}
+                          placeholder="Write product description here"
+                        />
+                      </div>
                     </div>
                   </div>
                 )}

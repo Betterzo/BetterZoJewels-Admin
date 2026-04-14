@@ -25,6 +25,8 @@ import {
   fetchAllCategories,
 } from "@/lib/api";
 import { ArrowLeft } from "lucide-react";
+import { ImageUploader } from "@/components/ui/imageUploader";
+import { set } from "date-fns";
 
 const CategoryForm = () => {
   const { id } = useParams<{ id?: string }>();
@@ -32,7 +34,10 @@ const CategoryForm = () => {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [parentId, setParentId] = useState<string | null>(null);
+  const [image, setImage] = useState<string | null>(null);
   const [categories, setCategories] = useState<any[]>([]);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [imageUploading, setImageUploading] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -58,6 +63,7 @@ const CategoryForm = () => {
           setParentId(
             res.data?.parent_id ? String(res.data.parent_id) : null
           );
+          setImage(res.data?.image || null);
         })
         .catch(() => {
           toast.error("Failed to load category");
@@ -67,15 +73,25 @@ const CategoryForm = () => {
     }
   }, [isEdit, id, navigate]);
 
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+    if (!name.trim()) newErrors.name = "Category name is required";
+    if (!description.trim()) newErrors.description = "Description is required";
+    if (image === null) newErrors.image = "Image is required";
+    return newErrors;
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) {
-      toast.error("Category name is required");
+    const errors = validateForm();
+    if (Object.keys(errors).length > 0) {
+      // Object.values(errors).forEach((error) => toast.error(error));
+      setErrors(errors);
       return;
     }
     setLoading(true);
     try {
-      const payload: any = { name, description };
+      const payload: any = { name, description ,image };
       if (parentId) payload.parent_id = parentId;
       if (isEdit && id) {
         await updateCategory(id, payload);
@@ -86,6 +102,7 @@ const CategoryForm = () => {
       }
       navigate("/categories");
     } catch (error: any) {
+      console.error(error);
       toast.error(
         error?.response?.data?.message ||
           (isEdit ? "Failed to update category" : "Failed to create category")
@@ -128,10 +145,13 @@ const CategoryForm = () => {
                     id="name"
                     name="name"
                     value={name}
-                    onChange={(e) => setName(e.target.value)}
+                    onChange={(e) =>{ setName(e.target.value)
+                    setErrors((prev) => ({ ...prev, name: "" }))}
+                  }
                     placeholder="Enter category name"
-                    required
+                  
                   />
+                  {errors.name && <p className="text-xs text-red-500">{errors.name}</p>}
                 </div>
                 <div className="space-y-2 md:col-span-2">
                   <label htmlFor="description" className="text-sm font-medium">
@@ -141,9 +161,13 @@ const CategoryForm = () => {
                     id="description"
                     name="description"
                     value={description}
-                    onChange={(e) => setDescription(e.target.value)}
+                    onChange={(e) => {
+                      setDescription(e.target.value);
+                      setErrors((prev) => ({ ...prev, description: "" }));
+                    }}
                     placeholder="Enter description"
                   />
+                  {errors.description && <p className="text-xs text-red-500">{errors.description}</p>}
                 </div>
                 <div className="space-y-2 md:col-span-2">
                   <label htmlFor="parent" className="text-sm font-medium">
@@ -167,6 +191,22 @@ const CategoryForm = () => {
                             ))}
                         </SelectContent>
                     </Select>
+                </div>
+                <div className="space-y-2 md:col-span-2">
+                      <div className="space-y-2">
+                                     <ImageUploader
+                                       label="Image"
+                                       value={image}
+                                       onChange={(v) => {
+                                         setImage(String(v || ""));
+                                         setErrors((prev) => ({ ...prev, image: "" }));
+                                        //  clearFieldError("image");
+                                       }}
+                                       disabled={loading}
+                                       onUploadingChange={setImageUploading}
+                                     />
+                                     {errors.image && <p className="text-xs text-red-500">{errors.image}</p>}
+                                   </div>
                 </div>
               </div>
               <CardFooter className="flex justify-between px-0">
