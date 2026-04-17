@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { fetchProduct, createProduct, updateProduct, fetchAllCategories } from "@/lib/api";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle } from "@/components/ui/dialog";
+import { APP_CURRENCY_CODE, APP_CURRENCY_LABEL, APP_CURRENCY_SYMBOL, formatIndianCurrency } from "@/lib/utils";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 
@@ -31,7 +32,7 @@ const initialProduct = {
   featured_image: "",
   gallery_images: [] as string[],
   price: "",
-  currency: "INR",
+  currency: APP_CURRENCY_CODE,
   stock: "",
   attributes: [] as { name: string; value: string }[],
   status: "1",
@@ -111,6 +112,7 @@ const ProductForm = () => {
             featured_image: prod.featured_image || featured_image,
             gallery_images,
             attributes,
+            currency: APP_CURRENCY_CODE,
             category_id: prod.category_id ? String(prod.category_id) : "",
           });
         })
@@ -235,7 +237,7 @@ const ProductForm = () => {
     if (!validateStep()) return;
     setIsLoading(true);
     try {
-      const payload = { ...product, category_id: product.category_id };
+      const payload = { ...product, category_id: product.category_id, currency: APP_CURRENCY_CODE };
       if (isEdit && product.id) {
         await updateProduct(product.id, payload);
         toast.success("Product updated successfully!", {
@@ -276,6 +278,9 @@ const ProductForm = () => {
       ))}
     </div>
   );
+
+  const selectedCategory = categories.find((cat) => String(cat.id) === product.category_id);
+  const reviewDescription = product.description?.trim();
 
   return (
     <div className="max-w-3xl mx-auto py-8">
@@ -384,10 +389,12 @@ const ProductForm = () => {
                       <Input name="price" type="number" value={product.price} onChange={handleChange} disabled={isLoading} />
                       {errors.price && <p className="text-xs text-red-500">{errors.price}</p>}
                     </div>
-                    <div>
+                    {/* <div>
                       <label className="font-medium">Currency</label>
-                      <Input name="currency" value={product.currency} onChange={handleChange} disabled={isLoading} />
-                    </div>
+                      <div className="h-10 rounded-md border bg-muted/40 px-3 flex items-center text-sm text-muted-foreground">
+                        {APP_CURRENCY_LABEL} ({APP_CURRENCY_SYMBOL})
+                      </div>
+                    </div> */}
                     <div>
                       <label className="font-medium">Stock</label>
                       <Input name="stock" type="number" value={product.stock} onChange={handleChange} disabled={isLoading} />
@@ -432,7 +439,99 @@ const ProductForm = () => {
                 {step === 4 && (
                   <div className="space-y-4">
                     <h3 className="font-bold text-lg mb-2">Review Your Product</h3>
-                    <pre className="bg-gray-100 p-4 rounded text-xs overflow-x-auto">{JSON.stringify(product, null, 2)}</pre>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="rounded-lg border p-4 space-y-3">
+                        <h4 className="font-semibold">Basic Details</h4>
+                        <div>
+                          <p className="text-sm text-gray-500">Title</p>
+                          <p className="font-medium">{product.name || "-"}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500">Category</p>
+                          <p className="font-medium">{selectedCategory?.name || "-"}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500">Status</p>
+                          <p className="font-medium">{product.status === "1" ? "Active" : "Inactive"}</p>
+                        </div>
+                      </div>
+
+                      <div className="rounded-lg border p-4 space-y-3">
+                        <h4 className="font-semibold">Pricing</h4>
+                        <div>
+                          <p className="text-sm text-gray-500">Price</p>
+                          <p className="font-medium">{product.price ? formatIndianCurrency(product.price) : "-"}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500">Stock</p>
+                          <p className="font-medium">{product.stock || "-"}</p>
+                        </div>
+                      </div>
+
+                      <div className="rounded-lg border p-4 space-y-3 md:col-span-2">
+                        <h4 className="font-semibold">Description</h4>
+                        {reviewDescription ? (
+                          <div
+                            className="prose prose-sm max-w-none"
+                            dangerouslySetInnerHTML={{ __html: product.description }}
+                          />
+                        ) : (
+                          <p className="text-sm text-gray-500">No description added</p>
+                        )}
+                      </div>
+
+                      <div className="rounded-lg border p-4 space-y-3">
+                        <h4 className="font-semibold">Images</h4>
+                        <div>
+                          <p className="text-sm text-gray-500 mb-2">Featured Image</p>
+                          {product.featured_image ? (
+                            <img
+                              src={product.featured_image}
+                              alt={product.name || "Featured product"}
+                              className="h-28 w-28 rounded-md object-cover border"
+                            />
+                          ) : (
+                            <p className="font-medium">Not added</p>
+                          )}
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500">Gallery Images</p>
+                          <p className="font-medium">{product.gallery_images.length} image(s)</p>
+                        </div>
+                      </div>
+
+                      <div className="rounded-lg border p-4 space-y-3">
+                        <h4 className="font-semibold">Meta Details</h4>
+                        <div>
+                          <p className="text-sm text-gray-500">Meta Title</p>
+                          <p className="font-medium">{product.meta_title || "-"}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500">Meta Description</p>
+                          <p className="font-medium">{product.meta_description || "-"}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500">Meta Keywords</p>
+                          <p className="font-medium">{product.meta_keywords || "-"}</p>
+                        </div>
+                      </div>
+
+                      <div className="rounded-lg border p-4 space-y-3 md:col-span-2">
+                        <h4 className="font-semibold">Attributes</h4>
+                        {product.attributes.length > 0 ? (
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            {product.attributes.map((attr, idx) => (
+                              <div key={idx} className="rounded-md bg-gray-50 p-3 border">
+                                <p className="text-sm text-gray-500">{attr.name}</p>
+                                <p className="font-medium">{attr.value}</p>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-sm text-gray-500">No attributes added</p>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 )}
 

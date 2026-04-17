@@ -12,6 +12,7 @@ import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { fetchPayment } from "@/lib/api";
 import { ArrowLeft, CreditCard, User, Package } from "lucide-react";
+import { formatIndianCurrency as formatCurrency } from "@/lib/utils";
 
 const DetailSkeleton = () => (
   <div className="space-y-6">
@@ -52,13 +53,6 @@ const formatDate = (dateString: string) => {
     hour: "2-digit",
     minute: "2-digit",
   });
-};
-
-const formatCurrency = (amount: number) => {
-  return new Intl.NumberFormat("en-IN", {
-    style: "currency",
-    currency: "INR",
-  }).format(amount || 0);
 };
 
 const normalizePayment = (raw: any) => {

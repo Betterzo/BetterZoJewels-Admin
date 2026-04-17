@@ -22,6 +22,7 @@ import { Separator } from "@/components/ui/separator";
 import { Package, CheckCircle, AlertCircle, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import { updateOrderItemsPacking } from "@/lib/api";
+import { formatIndianCurrency as formatCurrency } from "@/lib/utils";
 
 interface OrderItem {
   id: number;
@@ -137,13 +138,6 @@ const OrderFulfillment: React.FC<OrderFulfillmentProps> = ({ orderId, items, onU
     }
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(amount);
-  };
-
   return (
     <Card>
       <CardHeader>
@@ -152,7 +146,7 @@ const OrderFulfillment: React.FC<OrderFulfillmentProps> = ({ orderId, items, onU
           Order Fulfillment
         </CardTitle>
         <CardDescription>
-          Update packing status and quantities for each order item
+           packing status and quantities for each order item
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -174,10 +168,10 @@ const OrderFulfillment: React.FC<OrderFulfillmentProps> = ({ orderId, items, onU
                 <div className="flex-1">
                   <h4 className="font-medium">{item.product_name || item.product?.name || 'Product Name'}</h4>
                   <p className="text-sm text-gray-500">
-                    Ordered: {item.quantity} × {formatCurrency(parseFloat(item.price || '0'))}
+                    Ordered: {item.quantity} × {formatCurrency((item.price || '0'))}
                   </p>
                   <p className="text-sm text-gray-500">
-                    Total: {formatCurrency(parseFloat(item.subtotal || '0'))}
+                    Total: {formatCurrency((item.subtotal || '0'))}
                   </p>
                 </div>
               </div>
@@ -188,6 +182,7 @@ const OrderFulfillment: React.FC<OrderFulfillmentProps> = ({ orderId, items, onU
                 <div>
                   <Label htmlFor={`stock-status-${item.id}`}>Stock Status</Label>
                   <Select
+                   disabled
                     value={item.stock_status}
                     onValueChange={(value: 'available' | 'partial' | 'unavailable') => 
                       handleStockStatusChange(item.id, value)
@@ -225,6 +220,7 @@ const OrderFulfillment: React.FC<OrderFulfillmentProps> = ({ orderId, items, onU
                     id={`packed-quantity-${item.id}`}
                     type="number"
                     min="0"
+                    disabled
                     max={item.quantity}
                     value={item.packed_quantity}
                     onChange={(e) => handlePackedQuantityChange(item.id, e.target.value)}
@@ -235,7 +231,7 @@ const OrderFulfillment: React.FC<OrderFulfillmentProps> = ({ orderId, items, onU
                   </p>
                 </div>
 
-                <div>
+                {/* <div>
                   <Label htmlFor={`admin-note-${item.id}`}>Admin Note (Optional)</Label>
                   <Textarea
                     id={`admin-note-${item.id}`}
@@ -244,7 +240,7 @@ const OrderFulfillment: React.FC<OrderFulfillmentProps> = ({ orderId, items, onU
                     placeholder="Add notes about this item..."
                     rows={2}
                   />
-                </div>
+                </div> */}
               </div>
 
               <div className="flex items-center justify-between">
@@ -263,7 +259,7 @@ const OrderFulfillment: React.FC<OrderFulfillmentProps> = ({ orderId, items, onU
             </div>
           ))}
 
-          <div className="flex justify-end pt-4">
+          {/* <div className="flex justify-end pt-4">
             <Button 
               onClick={handleSubmit}
               disabled={updating}
@@ -271,7 +267,7 @@ const OrderFulfillment: React.FC<OrderFulfillmentProps> = ({ orderId, items, onU
             >
               {updating ? "Updating..." : "Update Fulfillment"}
             </Button>
-          </div>
+          </div> */}
         </div>
       </CardContent>
     </Card>

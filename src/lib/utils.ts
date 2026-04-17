@@ -7,6 +7,19 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+export const APP_CURRENCY_CODE = "INR";
+export const APP_CURRENCY_LOCALE = "en-IN";
+export const APP_CURRENCY_LABEL = "Indian Rupee";
+export const APP_CURRENCY_SYMBOL = "₹";
+
+export function formatIndianCurrency(amount: number | string) {
+  return new Intl.NumberFormat(APP_CURRENCY_LOCALE, {
+    style: "currency",
+    currency: APP_CURRENCY_CODE,
+    maximumFractionDigits: 2,
+  }).format(Number(amount) || 0);
+}
+
 export function showApiErrorToast(error: any, fallback = "Something went wrong") {
   if (error?.response?.status === 401 || error?.response?.status === 403) {
     if (isAuthLogoutPending()) return;

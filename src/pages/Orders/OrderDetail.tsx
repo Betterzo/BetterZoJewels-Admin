@@ -23,6 +23,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { toast } from "sonner";
 import { fetchOrder, changeOrderStatus, updateOrderTracking, downloadOrderInvoice } from "@/lib/api";
 import { ArrowLeft, Package, User, MapPin, CreditCard, Calendar, Truck, ExternalLink, Download } from "lucide-react";
+import { formatIndianCurrency as formatCurrency } from "@/lib/utils";
 import OrderFulfillment from "@/components/OrderFulfillment";
 
 const OrderDetailSkeleton = () => (
@@ -89,13 +90,6 @@ const formatDate = (dateString: string) => {
     hour: '2-digit',
     minute: '2-digit'
   });
-};
-
-const formatCurrency = (amount: number) => {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD'
-  }).format(amount);
 };
 
 const OrderDetail = () => {

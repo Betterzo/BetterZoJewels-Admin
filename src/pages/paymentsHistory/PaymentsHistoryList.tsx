@@ -21,6 +21,7 @@ import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import { fetchPayments } from "@/lib/api";
 import { Badge } from "@/components/ui/badge";
+import { formatIndianCurrency as formatCurrency } from "@/lib/utils";
 
 const PaymentsSkeleton = () => (
   <div className="p-4 space-y-4">
@@ -95,14 +96,6 @@ const PaymentsHistoryList = () => {
       hour: "2-digit",
       minute: "2-digit",
     });
-  };
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-IN", {
-      style: "currency",
-      currency: "INR",
-      maximumFractionDigits: 2,
-    }).format(amount || 0);
   };
 
   const rowAmount = (p: any) =>

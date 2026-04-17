@@ -23,6 +23,7 @@ import Swal from "sweetalert2";
 import { fetchOrders, deleteOrder } from "@/lib/api";
 import { Badge } from "@/components/ui/badge";
 import OrderReportDownload from "@/components/OrderReportDownload";
+import { formatIndianCurrency as formatCurrency } from "@/lib/utils";
 
 const OrdersSkeleton = () => (
   <div className="p-4 space-y-4">
@@ -114,13 +115,6 @@ const OrderList = () => {
       hour: '2-digit',
       minute: '2-digit'
     });
-  };
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(amount);
   };
 
   return (
