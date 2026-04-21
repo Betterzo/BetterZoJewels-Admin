@@ -151,7 +151,9 @@ const ProductList = () => {
                             alt={product.name}
                             className="w-12 h-12 rounded object-cover border"
                           />
-                          <span className="font-medium text-gray-800">{product.name}</span>
+                          <a href={`https://www.betterzojewels.com/product/${product.id}`} className="hover:text-red-500" target="_blank" rel="noopener noreferrer">
+                            <span className="font-medium text-gray-800 hover:text-blue-500">{product.name}</span>
+                          </a>
                         </div>
                       </TableCell>
                       {/* <TableCell>{product.discount_price || "-"}</TableCell> */}

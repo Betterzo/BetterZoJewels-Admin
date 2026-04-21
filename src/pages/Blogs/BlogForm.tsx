@@ -378,8 +378,21 @@ const BlogForm = () => {
                   <label htmlFor="content" className="text-sm font-medium">
                     Blog Content
                   </label>
+                    <style>
+    {`
+      .product-quill .ql-container {
+        height: 300px;
+      }
+
+      .product-quill .ql-editor {
+        height: 290px;
+        overflow-y: auto;
+      }
+    `}
+  </style>
                   <ReactQuill
                     id="content"
+                    className="product-quill"
                     value={blog.content}
                     onChange={value => setBlog(prev => ({ ...prev, content: value }))}
                     placeholder="Write your blog content here"

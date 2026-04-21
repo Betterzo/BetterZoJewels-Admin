@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle } from "
 import { APP_CURRENCY_CODE, APP_CURRENCY_LABEL, APP_CURRENCY_SYMBOL, formatIndianCurrency } from "@/lib/utils";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
+// import "/src/App.css";
 
 const steps = [
   "Title & Meta",
@@ -147,7 +148,8 @@ const ProductForm = () => {
     }
     if (step === 2) {
       if (!product.price) newErrors.price = "Price is required";
-      if(!isNaN(Number(product.price)) && Number(product.price) < 0) newErrors.price = "Price cannot be negative";
+      if(!isNaN(Number(product.price)) && Number(product.price) <= 0) newErrors.price = "Price must be greater than zero";
+      // if(!isNaN(Number(product.price)) && Number(product.price) < 0) newErrors.price = "Price cannot be negative";
       if(!product.stock) newErrors.stock = "Stock is required";
       if(!isNaN(Number(product.stock)) && Number(product.stock) < 0) newErrors.stock = "Stock cannot be negative";
     }
@@ -168,17 +170,20 @@ const ProductForm = () => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setProduct((prev) => ({ ...prev, [name]: value }));
+    setErrors((prev) => ({ ...prev, [name]: "" }));
     setDirty(true);
   };
 
   // Handle category change
   const handleCategoryChange = (value: string) => {
     setProduct((prev) => ({ ...prev, category_id: value }));
+    setErrors((prev) => ({ ...prev, category_id: "" }));
     setDirty(true);
   };
 
   const handleDescriptionChange = (value: string) => {
     setProduct((prev) => ({ ...prev, description: value }));
+
     setDirty(true);
   };
 
@@ -208,6 +213,7 @@ const ProductForm = () => {
   // Handle image changes
   const handleFeaturedImageChange = (img: string) => {
     setProduct((prev) => ({ ...prev, featured_image: img }));
+    setErrors((prev)=>({...prev,featured_image: ""}));
     setDirty(true);
   };
   const handleGalleryImagesChange = (imgs: string[] | string) => {
@@ -341,17 +347,31 @@ const ProductForm = () => {
                       )}
                       {errors.category_id && <p className="text-xs text-red-500">{errors.category_id}</p>}
                     </div>
-                    <div className="md:col-span-2">
-                      <label className="font-medium">Description</label>
-                      <div className="mt-2">
-                        <ReactQuill
-                          theme="snow"
-                          value={product.description}
-                          onChange={handleDescriptionChange}
-                          placeholder="Write product description here"
-                        />
-                      </div>
-                    </div>
+                 <div className="md:col-span-2">
+  <label className="font-medium">Description</label>
+
+  <style>
+    {`
+      .product-quill .ql-container {
+        height: 300px;
+      }
+
+      .product-quill .ql-editor {
+        height: 290px;
+        overflow-y: auto;
+      }
+    `}
+  </style>
+
+  <div className="mt-2 product-quill">
+    <ReactQuill
+      theme="snow"
+      value={product.description}
+      onChange={handleDescriptionChange}
+      placeholder="Write product description here"
+    />
+  </div>
+</div>
                   </div>
                 )}
 

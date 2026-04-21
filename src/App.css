@@ -40,3 +40,14 @@
 .read-the-docs {
   color: #888;
 }
+
+
+.quill-wrapper .ql-container {
+  height: 300px;
+}
+
+.quill-wrapper .ql-editor {
+  min-height: 250px;
+  max-height: 250px;
+  overflow-y: auto;
+}
