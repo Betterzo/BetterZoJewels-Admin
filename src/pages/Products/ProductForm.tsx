@@ -3,24 +3,22 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft } from "lucide-react";
 import { ImageUploader } from "@/components/ui/imageUploader";
 import { toast } from "sonner";
 import { fetchProduct, createProduct, updateProduct, fetchAllCategories } from "@/lib/api";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle } from "@/components/ui/dialog";
-import { APP_CURRENCY_CODE, APP_CURRENCY_LABEL, APP_CURRENCY_SYMBOL, formatIndianCurrency } from "@/lib/utils";
+import { APP_CURRENCY_CODE } from "@/lib/utils";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
-// import "/src/App.css";
 
 const steps = [
   "Title & Meta",
   "Images",
   "Price",
   "Attributes",
-  "Review & Submit",
 ];
 
 const initialProduct = {
@@ -187,6 +185,13 @@ const ProductForm = () => {
     setDirty(true);
   };
 
+  const handleAttributeKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleAddAttribute();
+    }
+  };
+
   // Handle attribute add/remove
   const handleAddAttribute = () => {
     if (inputAttr.name && inputAttr.value) {
@@ -284,9 +289,6 @@ const ProductForm = () => {
       ))}
     </div>
   );
-
-  const selectedCategory = categories.find((cat) => String(cat.id) === product.category_id);
-  const reviewDescription = product.description?.trim();
 
   return (
     <div className="max-w-3xl mx-auto py-8">
@@ -409,12 +411,6 @@ const ProductForm = () => {
                       <Input name="price" type="number" value={product.price} onChange={handleChange} disabled={isLoading} />
                       {errors.price && <p className="text-xs text-red-500">{errors.price}</p>}
                     </div>
-                    {/* <div>
-                      <label className="font-medium">Currency</label>
-                      <div className="h-10 rounded-md border bg-muted/40 px-3 flex items-center text-sm text-muted-foreground">
-                        {APP_CURRENCY_LABEL} ({APP_CURRENCY_SYMBOL})
-                      </div>
-                    </div> */}
                     <div>
                       <label className="font-medium">Stock</label>
                       <Input name="stock" type="number" value={product.stock} onChange={handleChange} disabled={isLoading} />
@@ -432,12 +428,14 @@ const ProductForm = () => {
                         placeholder="Attribute Name"
                         value={inputAttr.name}
                         onChange={e => setInputAttr(attr => ({ ...attr, name: e.target.value }))}
+                        onKeyDown={handleAttributeKeyDown}
                         disabled={isLoading}
                       />
                       <Input
                         placeholder="Attribute Value"
                         value={inputAttr.value}
                         onChange={e => setInputAttr(attr => ({ ...attr, value: e.target.value }))}
+                        onKeyDown={handleAttributeKeyDown}
                         disabled={isLoading}
                       />
                       <Button type="button" onClick={handleAddAttribute} disabled={isLoading}>Add</Button>
@@ -455,106 +453,6 @@ const ProductForm = () => {
                   </div>
                 )}
 
-                {/* Step 5: Review & Submit */}
-                {step === 4 && (
-                  <div className="space-y-4">
-                    <h3 className="font-bold text-lg mb-2">Review Your Product</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="rounded-lg border p-4 space-y-3">
-                        <h4 className="font-semibold">Basic Details</h4>
-                        <div>
-                          <p className="text-sm text-gray-500">Title</p>
-                          <p className="font-medium">{product.name || "-"}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-500">Category</p>
-                          <p className="font-medium">{selectedCategory?.name || "-"}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-500">Status</p>
-                          <p className="font-medium">{product.status === "1" ? "Active" : "Inactive"}</p>
-                        </div>
-                      </div>
-
-                      <div className="rounded-lg border p-4 space-y-3">
-                        <h4 className="font-semibold">Pricing</h4>
-                        <div>
-                          <p className="text-sm text-gray-500">Price</p>
-                          <p className="font-medium">{product.price ? formatIndianCurrency(product.price) : "-"}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-500">Stock</p>
-                          <p className="font-medium">{product.stock || "-"}</p>
-                        </div>
-                      </div>
-
-                      <div className="rounded-lg border p-4 space-y-3 md:col-span-2">
-                        <h4 className="font-semibold">Description</h4>
-                        {reviewDescription ? (
-                          <div
-                            className="prose prose-sm max-w-none"
-                            dangerouslySetInnerHTML={{ __html: product.description }}
-                          />
-                        ) : (
-                          <p className="text-sm text-gray-500">No description added</p>
-                        )}
-                      </div>
-
-                      <div className="rounded-lg border p-4 space-y-3">
-                        <h4 className="font-semibold">Images</h4>
-                        <div>
-                          <p className="text-sm text-gray-500 mb-2">Featured Image</p>
-                          {product.featured_image ? (
-                            <img
-                              src={product.featured_image}
-                              alt={product.name || "Featured product"}
-                              className="h-28 w-28 rounded-md object-cover border"
-                            />
-                          ) : (
-                            <p className="font-medium">Not added</p>
-                          )}
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-500">Gallery Images</p>
-                          <p className="font-medium">{product.gallery_images.length} image(s)</p>
-                        </div>
-                      </div>
-
-                      <div className="rounded-lg border p-4 space-y-3">
-                        <h4 className="font-semibold">Meta Details</h4>
-                        <div>
-                          <p className="text-sm text-gray-500">Meta Title</p>
-                          <p className="font-medium">{product.meta_title || "-"}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-500">Meta Description</p>
-                          <p className="font-medium">{product.meta_description || "-"}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-500">Meta Keywords</p>
-                          <p className="font-medium">{product.meta_keywords || "-"}</p>
-                        </div>
-                      </div>
-
-                      <div className="rounded-lg border p-4 space-y-3 md:col-span-2">
-                        <h4 className="font-semibold">Attributes</h4>
-                        {product.attributes.length > 0 ? (
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            {product.attributes.map((attr, idx) => (
-                              <div key={idx} className="rounded-md bg-gray-50 p-3 border">
-                                <p className="text-sm text-gray-500">{attr.name}</p>
-                                <p className="font-medium">{attr.value}</p>
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <p className="text-sm text-gray-500">No attributes added</p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
                 <div className="flex justify-between mt-8">
                   {step > 0 && (
                     <Button type="button" variant="outline" onClick={prevStep} disabled={isLoading || imageUploadBusy}>
@@ -567,11 +465,11 @@ const ProductForm = () => {
                     </Button>
                   ) : null}
                   {step < steps.length - 1 ? (
-                    <Button type="button" onClick={nextStep} disabled={isLoading || imageUploadBusy}>
+                    <Button key="next-step-button" type="button" onClick={nextStep} disabled={isLoading || imageUploadBusy}>
                       Next
                     </Button>
                   ) : (
-                    <Button type="submit" disabled={isLoading || imageUploadBusy}>
+                    <Button key="submit-step-button" type="submit" disabled={isLoading || imageUploadBusy}>
                       {isLoading ? "Saving..." : "Submit"}
                     </Button>
                   )}
